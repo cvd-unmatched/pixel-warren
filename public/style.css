@@ -1,0 +1,560 @@
+  :root{
+    --ink:#1b2118;
+    --ink-2:#242b1e;
+    --parchment:#ece4d3;
+    --parchment-dim:#c9c0ac;
+    --moss:#4a8a4e;
+    --moss-dim:#356338;
+    --ember:#d97b3f;
+    --dusk:#463d63;
+    --gold:#e8c468;
+    --danger:#c65a4a;
+    --shield:#7bc7f0;
+    --panel:#2a3323;
+    --panel-2:#333e29;
+    --stone:#4b4437;
+    --line:rgba(236,228,211,0.14);
+    --shadow: 0 6px 0 rgba(0,0,0,0.35);
+    --level-accent: var(--gold);
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box;}
+  html,body{ height:100%; }
+  body{
+    background: radial-gradient(ellipse at 50% -10%, #2c3524 0%, var(--ink) 55%, #12160e 100%);
+    color: var(--parchment);
+    font-family:'Nunito', system-ui, sans-serif;
+    height:100vh; height:100dvh;
+    margin:0;
+    display:flex;
+    justify-content:center;
+    overflow:hidden;
+    padding: 14px 14px 12px;
+  }
+  h1,h2,h3{margin:0; text-wrap:balance;}
+  button{font-family:inherit;}
+
+  .pixel-font{ font-family:'Press Start 2P', 'Nunito', monospace; letter-spacing:0.5px; }
+
+  .app{ width:100%; max-width:980px; height:100%; display:flex; flex-direction:column; gap:12px; min-height:0; }
+
+  /* scrollbars, themed to match the rest of the chrome */
+  .shop-list, .modal-body{ scrollbar-width:thin; scrollbar-color: var(--stone) transparent; }
+  .shop-list::-webkit-scrollbar, .modal-body::-webkit-scrollbar{ width:8px; }
+  .shop-list::-webkit-scrollbar-track, .modal-body::-webkit-scrollbar-track{ background:transparent; }
+  .shop-list::-webkit-scrollbar-thumb, .modal-body::-webkit-scrollbar-thumb{ background:var(--stone); border-radius:8px; }
+  .shop-list::-webkit-scrollbar-thumb:hover, .modal-body::-webkit-scrollbar-thumb:hover{ background:var(--moss-dim); }
+
+  /* ---- Top bar ---- */
+  .topbar{
+    flex:none;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border:2px solid var(--stone); border-radius:14px; padding:12px 18px;
+    box-shadow: var(--shadow);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-mark{ width:30px; height:30px; image-rendering:pixelated; }
+  .brand h1{ font-size:15px; color:var(--gold); }
+  .brand span{ display:block; font-size:11px; color:var(--parchment-dim); margin-top:2px; font-weight:700; }
+
+  .currencies{ display:flex; gap:18px; }
+  .currency{ display:flex; align-items:center; gap:8px; position:relative; border-radius:8px; }
+  .currency[hidden]{ display:none; }
+  .currency .icon{ width:20px; height:20px; flex:none; transform-origin:50% 50%; }
+  .currency.gold-pulse .icon{ animation: coinPulse .4s ease; }
+  .currency b{ font-size:16px; font-variant-numeric:tabular-nums; }
+  .currency small{ display:block; font-size:10px; color:var(--parchment-dim); text-transform:uppercase; letter-spacing:0.5px; }
+
+  [data-tooltip]{ cursor:help; }
+  [data-tooltip]::after{
+    content: attr(data-tooltip);
+    position:absolute; top:calc(100% + 10px); left:50%; transform:translateX(-50%) translateY(-4px);
+    width:220px;
+    background:rgba(15,12,8,0.97); color:var(--parchment); border:1px solid var(--gold);
+    font-size:10.5px; font-weight:600; line-height:1.4; text-transform:none; letter-spacing:normal;
+    padding:8px 10px; border-radius:9px; box-shadow:0 8px 18px rgba(0,0,0,0.45);
+    opacity:0; pointer-events:none; transition:opacity .15s ease, transform .15s ease; z-index:40;
+  }
+  [data-tooltip]:hover::after, [data-tooltip]:focus-visible::after{ opacity:1; transform:translateX(-50%) translateY(0); }
+  [data-tooltip]:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  /* anchor to the near edge instead of centering, so the box never clips off a narrow viewport */
+  #goldCurrency::after{ left:0; transform:translateY(-4px); }
+  #goldCurrency:hover::after, #goldCurrency:focus-visible::after{ transform:translateY(0); }
+  #blessCurrency::after{ left:auto; right:0; transform:translateY(-4px); }
+  #blessCurrency:hover::after, #blessCurrency:focus-visible::after{ transform:translateY(0); }
+  #tokenCurrency::after{ left:auto; right:0; transform:translateY(-4px); }
+  #tokenCurrency:hover::after, #tokenCurrency:focus-visible::after{ transform:translateY(0); }
+  .save-dot{ width:7px; height:7px; border-radius:50%; background:var(--moss); flex:none; opacity:0; transition:opacity .3s ease; }
+  .save-dot.show{ opacity:1; }
+
+  .account-btn{
+    flex:none; background:rgba(232,196,104,0.1); border:1px solid var(--gold); color:var(--gold);
+    font-family:inherit; font-size:11px; font-weight:800; padding:6px 12px; border-radius:999px; cursor:pointer;
+    white-space:nowrap;
+  }
+  .account-btn:hover{ background:rgba(232,196,104,0.2); }
+
+  .account-tabs{ display:flex; gap:6px; margin-bottom:10px; }
+  .account-tab{
+    flex:1; background:rgba(0,0,0,0.2); border:1px solid var(--line); color:var(--parchment-dim);
+    font-family:inherit; font-size:11px; font-weight:800; padding:8px; border-radius:8px; cursor:pointer;
+  }
+  .account-tab.active{ background:rgba(232,196,104,0.15); border-color:var(--gold); color:var(--gold); }
+  .account-form{ display:flex; flex-direction:column; gap:8px; }
+  .account-input{
+    background:rgba(0,0,0,0.3); border:1px solid var(--line); border-radius:8px; color:var(--parchment);
+    font-family:inherit; font-size:12px; padding:9px 10px;
+  }
+  .account-input:focus{ outline:none; border-color:var(--gold); }
+  .account-error{ font-size:11px; color:var(--danger); min-height:14px; }
+
+  .leaderboard-list{ display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto; }
+  .leaderboard-row{ display:flex; align-items:center; gap:8px; background:rgba(0,0,0,0.2); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:11px; }
+  .leaderboard-rank{ font-weight:900; color:var(--gold); width:18px; flex:none; }
+  .leaderboard-name{ flex:1; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .leaderboard-stat{ color:var(--parchment-dim); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .leaderboard-empty{ font-size:11px; color:var(--parchment-dim); text-align:center; padding:10px; }
+
+  /* ---- Level strip ---- */
+  .level-strip{ flex:none; display:flex; flex-direction:column; gap:6px; background: var(--panel); border:2px solid var(--stone); border-radius:14px; padding:10px 16px; }
+  .level-row{ display:flex; align-items:center; gap:12px; }
+  .level-strip .name{ font-size:13px; font-weight:800; color:var(--parchment); white-space:nowrap; }
+  .level-strip .name em{ font-style:normal; color: var(--level-accent); transition: color .5s ease; }
+  .track{ flex:1; height:10px; border-radius:6px; background:rgba(0,0,0,0.35); overflow:hidden; border:1px solid var(--line); }
+  .track > i{ display:block; height:100%; background: linear-gradient(90deg, var(--moss-dim), var(--level-accent)); width:0%; transition:width .35s ease, background .5s ease; }
+  .level-strip .count{ font-size:11px; color:var(--parchment-dim); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .level-lore{ margin:0; font-size:11px; font-style:italic; color:var(--parchment-dim); }
+
+  /* ---- Main layout ---- */
+  .main{ flex:1; min-height:0; display:grid; grid-template-columns: 1.3fr 1fr; gap:14px; }
+
+  /* ---- Arena ---- */
+  .arena{ position:relative; border:2px solid var(--stone); border-radius:16px; overflow:hidden; height:100%; min-height:0; display:flex; flex-direction:column; box-shadow: var(--shadow); }
+  .arena-sky{ position:absolute; inset:0; transition: background 0.8s ease; }
+  .arena-decor{ position:absolute; inset:0; pointer-events:none; }
+  .decor-item{ position:absolute; image-rendering:pixelated; opacity:0.85; }
+
+  .arena-content{ position:relative; z-index:2; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; gap:14px; }
+
+  .boss-banner{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    background:rgba(20,12,8,0.75); border:1px solid var(--level-accent); color: var(--level-accent);
+    font-size:10px; padding:6px 14px; border-radius:999px; text-transform:uppercase; letter-spacing:1px;
+    display:none; align-items:center; gap:6px; z-index:3; transition: border-color .25s ease, color .25s ease;
+  }
+  .boss-banner.show{ display:flex; animation: bannerDrop .5s ease; }
+  .boss-banner.shielded{ border-color: var(--shield); color: var(--shield); }
+
+  .pip-btn{
+    position:absolute; top:10px; right:10px; z-index:6;
+    background:rgba(0,0,0,0.4); border:1px solid var(--line); color:var(--parchment-dim);
+    width:26px; height:26px; border-radius:8px; font-size:13px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .pip-btn:hover{ color:var(--gold); border-color:var(--gold); }
+  .pip-btn[hidden]{ display:none; }
+  .pip-placeholder{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:var(--parchment-dim); font-size:12px; text-align:center; padding:20px; }
+  .pip-placeholder button{
+    background: linear-gradient(180deg, #5da062, var(--moss-dim)); color:#0e1a0e; border:none; border-radius:8px;
+    padding:8px 14px; font-weight:800; font-size:12px; cursor:pointer; box-shadow:0 3px 0 #223c22; font-family:inherit;
+  }
+  /* the popped-out window is a blank document -- keep it dark and centered */
+  .pip-doc-root{ background: var(--ink); margin:0; }
+
+  .stage{ position:relative; width:190px; height:190px; display:flex; align-items:center; justify-content:center; cursor:pointer; -webkit-tap-highlight-color: transparent; user-select:none; }
+  .stage svg{ width:100%; height:100%; image-rendering:pixelated; filter:drop-shadow(0 10px 14px rgba(0,0,0,0.45)); transition: filter .25s ease; }
+  .stage.boss svg{ filter:drop-shadow(0 12px 22px rgba(232,196,104,0.35)) drop-shadow(0 10px 14px rgba(0,0,0,0.5)); }
+  .stage.boss.shielded svg{ filter:drop-shadow(0 0 12px rgba(123,199,240,0.75)) drop-shadow(0 10px 14px rgba(0,0,0,0.5)); }
+  .stage .sprite-wrap{ animation: bob 2.6s ease-in-out infinite; }
+  /* click feedback targets whichever sprite is actually being hit -- the
+     boss itself, or the add standing guard in front of it -- not both at
+     once regardless of which one the click actually damaged. */
+  .sprite-wrap.hit{ animation: hitshake .18s ease; }
+  .add-sprite.hit{ animation: hitshake .18s ease; }
+  .stage.dying .sprite-wrap{ animation: dieOut .4s ease forwards; }
+
+  /* traced sprites read a little dark/muddy against the arena's own dark
+     background -- a soft white backlight, always on (not just for bosses),
+     helps them pop without changing the sprite art itself. */
+  .sprite-glow{ position:absolute; width:160px; height:160px; border-radius:50%; background: radial-gradient(circle, rgba(255,255,255,0.22), transparent 72%); pointer-events:none; }
+  .stage.boss .sprite-glow{ width:200px; height:200px; }
+
+  .aura{ position:absolute; width:220px; height:220px; border-radius:50%; background: radial-gradient(circle, rgba(232,196,104,0.25), transparent 70%); display:none; }
+  .stage.boss .aura{ display:block; animation: pulse 2.2s ease-in-out infinite; }
+  .stage.boss.shielded .aura{ background: radial-gradient(circle, rgba(123,199,240,0.4), transparent 70%); }
+
+  /* Purely cosmetic: a little escort that only ever shows up around Matti,
+     so his fights read as visually distinct even with no gameplay effect. */
+  .matti-angels{ position:absolute; inset:0; pointer-events:none; display:none; z-index:3; }
+  .matti-angels.show{ display:block; }
+  .angel-orbit{ position:absolute; left:50%; top:50%; width:0; height:0; animation: angelOrbit 7s linear infinite; }
+  .angel-orbit-2{ animation-delay:-2.3s; }
+  .angel-orbit-3{ animation-delay:-4.6s; }
+  .angel-icon{ position:absolute; left:-9px; top:-92px; width:18px; height:18px; animation: angelSpin 7s linear infinite; filter:drop-shadow(0 0 4px rgba(255,230,150,0.7)); }
+  .angel-icon svg{ width:100%; height:100%; image-rendering:pixelated; }
+  .angel-orbit-2 .angel-icon{ animation-delay:-2.3s; }
+  .angel-orbit-3 .angel-icon{ animation-delay:-4.6s; }
+  @keyframes angelOrbit{ from{ transform:rotate(0deg);} to{ transform:rotate(360deg);} }
+  @keyframes angelSpin{ from{ transform:rotate(0deg);} to{ transform:rotate(-360deg);} }
+
+  /* boss sprite recedes and dims while a guardian stands in front of it */
+  .stage.guarded .sprite-wrap{ filter:brightness(0.45) saturate(0.5) blur(0.5px); transition:filter .3s ease; }
+  .stage.guarded .aura{ opacity:0.35; }
+  .add-wrap{
+    position:absolute; left:50%; bottom:-4px; transform:translateX(-50%);
+    width:104px; display:none; flex-direction:column; align-items:center; gap:4px; z-index:4;
+    filter:drop-shadow(0 10px 10px rgba(0,0,0,0.55));
+  }
+  .add-wrap.show{ display:flex; animation: addPop .3s ease; }
+  .add-label{ font-size:9px; font-weight:800; color:var(--parchment); background:rgba(15,12,8,0.75); border:1px solid var(--line); padding:1px 7px; border-radius:999px; white-space:nowrap; }
+  .add-sprite{ width:74px; height:74px; animation: bob 2.2s ease-in-out infinite; }
+  .add-sprite svg{ width:100%; height:100%; image-rendering:pixelated; }
+  .add-hp-track{ width:100%; height:8px; border-radius:5px; background:rgba(0,0,0,0.5); border:1px solid var(--line); overflow:hidden; }
+  .add-hp-fill{ height:100%; background:linear-gradient(90deg,#7a2f2f,var(--danger)); width:100%; transition:width .15s ease; }
+
+  /* ---- Matti's math gate: blocks all damage until answered ---- */
+  .math-gate{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:8;
+    display:none; flex-direction:column; align-items:center; gap:8px;
+    background:rgba(15,12,8,0.92); border:1px solid var(--gold); border-radius:12px;
+    padding:14px 18px; box-shadow:0 10px 24px rgba(0,0,0,0.55); width:180px;
+  }
+  .math-gate.show{ display:flex; }
+  .math-gate.shake{ animation: hitshake .3s ease; }
+  .math-gate-q{ font-size:15px; font-weight:800; color:var(--gold); text-align:center; }
+  .math-gate-input{
+    width:100%; text-align:center; font-size:14px; font-weight:800; font-family:inherit;
+    background:rgba(0,0,0,0.35); border:1px solid var(--line); border-radius:8px; color:var(--parchment);
+    padding:6px 8px;
+  }
+  .math-gate-submit{
+    width:100%; background: linear-gradient(180deg, #f0d488, var(--gold)); color:#3a2c0d; border:none;
+    border-radius:8px; padding:7px; font-weight:900; font-size:11px; cursor:pointer; box-shadow:0 3px 0 #8a6a1f;
+    font-family:inherit;
+  }
+  .math-gate-submit:active{ transform:translateY(2px); box-shadow:0 1px 0 #8a6a1f; }
+
+  .enemy-label{ position:relative; z-index:2; text-align:center; }
+  .enemy-label .name{ font-size:14px; font-weight:800; }
+  .enemy-label .name.boss{ color: var(--level-accent); }
+  .enemy-label .sub{ font-size:10px; color:var(--parchment-dim); margin-top:2px; }
+  .hp-wrap{ width:220px; }
+  .hp-track{ height:16px; border-radius:8px; background:rgba(0,0,0,0.4); border:1px solid var(--line); overflow:hidden; position:relative; }
+  .hp-fill{ height:100%; background:linear-gradient(90deg, #7a2f2f, var(--danger)); width:100%; transition:width .18s ease, background .25s ease; }
+  .hp-fill.shielded{ background:linear-gradient(90deg, #2f5c7a, var(--shield)); }
+  .hp-fill.regen-flash{ animation: regenFlash .6s ease; }
+  .hp-text{ text-align:center; font-size:10px; margin-top:5px; color:var(--parchment-dim); font-variant-numeric:tabular-nums; }
+
+  .floaters{ position:absolute; inset:0; pointer-events:none; z-index:5; overflow:visible; }
+  .floater{ position:absolute; font-weight:800; font-size:15px; color:#fff; text-shadow:0 2px 3px rgba(0,0,0,0.6); animation: floatUp 0.9s ease-out forwards; white-space:nowrap; }
+  .floater.crit{ color:var(--gold); font-size:19px; }
+  .floater.gold{ color:#9be27a; }
+  .floater.blocked{ color:var(--shield); }
+
+  .flash{ position:absolute; inset:0; background:var(--gold); opacity:0; pointer-events:none; z-index:9; }
+  .flash.go{ animation: bossFlash .6s ease; }
+
+  .hint{
+    font-size:10px; font-weight:700; color:var(--parchment-dim); text-align:center;
+    background:rgba(0,0,0,0.22); border:1px solid var(--line); border-radius:999px;
+    padding:5px 14px; letter-spacing:0.2px;
+  }
+  .challenge-btn{
+    background: linear-gradient(180deg, #f0d488, var(--gold)); color:#3a2c0d; border:none; border-radius:8px;
+    padding:10px 18px; font-weight:900; font-size:12px; cursor:pointer; box-shadow:0 3px 0 #8a6a1f;
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+  .challenge-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #8a6a1f; }
+  .challenge-btn[hidden]{ display:none; }
+  .flee-btn{
+    background:rgba(198,90,74,0.15); color:var(--danger); border:1px solid var(--danger); border-radius:8px;
+    padding:7px 14px; font-weight:800; font-size:11px; cursor:pointer; font-family:inherit;
+  }
+  .flee-btn:hover{ background:rgba(198,90,74,0.28); }
+  .flee-btn[hidden]{ display:none; }
+
+  /* ---- Flying coins ---- */
+  .coin-layer{ position:fixed; inset:0; pointer-events:none; z-index:60; }
+  .coin{ position:fixed; width:16px; height:16px; pointer-events:none; will-change: transform, opacity; animation: coinFly .65s cubic-bezier(.32,.85,.34,1) forwards; }
+  .coin svg{ width:100%; height:100%; image-rendering:pixelated; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.45)); }
+
+  /* ---- Stats & Shop panel ----
+     The panel never scrolls itself: it's a flex column where most
+     sections size to their content, and exactly two sections
+     (.panel-section, wrapping Camp Shop and Village) are flex:1 so they
+     share whatever room is left -- and the upgrade lists inside them are
+     the only things that scroll. That's what keeps the whole app pinned
+     to one screen with no page-level scrollbar, on desktop or mobile. */
+  .panel{ background: linear-gradient(180deg, var(--panel-2), var(--panel)); border:2px solid var(--stone); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:10px; box-shadow: var(--shadow); height:100%; min-height:0; overflow:hidden; }
+  .panel h2{ font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--gold); display:flex; align-items:center; justify-content:space-between; gap:8px; flex:none; }
+  .village-balance{ display:flex; align-items:center; gap:5px; text-transform:none; letter-spacing:0; font-size:11px; color:var(--parchment-dim); font-weight:700; }
+  .village-balance .icon{ width:14px; height:14px; }
+  .village-balance b{ color:var(--parchment); font-variant-numeric:tabular-nums; }
+  .village-blurb{ margin:2px 0 8px; font-size:10.5px; color:var(--parchment-dim); flex:none; }
+
+  .panel-section{ flex:1 1 0; min-height:64px; display:flex; flex-direction:column; gap:8px; overflow:hidden; }
+
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px 14px; flex:none; }
+  .stat{ display:flex; justify-content:space-between; font-size:12px; border-bottom:1px dashed var(--line); padding-bottom:4px; }
+  .stat b{ font-variant-numeric:tabular-nums; color:var(--parchment); }
+
+  .shop-list{ display:flex; flex-direction:column; gap:8px; flex:1; min-height:0; overflow-y:auto; padding-right:2px; }
+  .shop-category{
+    font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; color:var(--parchment-dim);
+    padding:6px 2px 0; border-bottom:1px dashed var(--line);
+  }
+  .shop-category:first-child{ padding-top:0; }
+  .upgrade{ display:grid; grid-template-columns: 1fr auto; gap:2px 10px; background: rgba(0,0,0,0.2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; align-items:center; }
+  .upgrade .u-name{ font-size:12px; font-weight:800; grid-column:1; display:flex; align-items:center; gap:6px; }
+  .u-icon{ width:18px; height:18px; flex:none; image-rendering:pixelated; }
+  .buy-icon{ width:11px; height:11px; display:inline-block; vertical-align:-1px; margin-right:3px; }
+  .upgrade .u-desc{ font-size:10.5px; color:var(--parchment-dim); grid-column:1; }
+  .upgrade .u-lvl{ font-size:9.5px; color:var(--moss); grid-column:1; font-weight:700; }
+  .buy{
+    grid-column:2; grid-row:1 / span 3;
+    background: linear-gradient(180deg, #5da062, var(--moss-dim));
+    color:#0e1a0e; border:none; border-radius:8px; padding:9px 12px;
+    font-weight:900; font-size:12px; cursor:pointer;
+    box-shadow:0 3px 0 #223c22;
+    transition: transform .08s ease, box-shadow .08s ease, filter .15s ease;
+    white-space:nowrap;
+  }
+  .buy:active{ transform:translateY(2px); box-shadow:0 1px 0 #223c22; }
+  .buy:disabled{ filter:grayscale(0.6) brightness(0.6); cursor:not-allowed; box-shadow:0 3px 0 #1a1a1a; }
+  .u-buy-row{ grid-column:2; grid-row:1 / span 3; display:flex; flex-direction:column; gap:4px; }
+  .u-buy-row .buy{ grid-column:auto; grid-row:auto; }
+  .buy-max{ font-size:9.5px; padding:6px 10px; background:linear-gradient(180deg,#c99a3a,#8a6a1a); box-shadow:0 3px 0 #4a3a0a; }
+  .buy-max:active{ box-shadow:0 1px 0 #4a3a0a; }
+
+  .prestige-box{ flex:none; border:1px solid var(--gold); border-radius:8px; padding:8px 10px; background:rgba(232,196,104,0.08); display:flex; flex-direction:column; gap:5px; }
+  .prestige-box h2{ font-size:10px; }
+  .prestige-box p{ font-size:10px; color:var(--parchment-dim); margin:0; line-height:1.3; }
+  .ascend-btn{ background: linear-gradient(180deg, #f0d488, var(--gold)); color:#3a2c0d; border:none; border-radius:7px; padding:7px; font-weight:900; font-size:11px; cursor:pointer; box-shadow:0 3px 0 #8a6a1f; }
+  .ascend-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #8a6a1f; }
+  .ascend-btn:disabled{ filter:grayscale(0.7) brightness(0.7); cursor:not-allowed; }
+
+  /* ---- Village: opened on demand, not part of the main screen ---- */
+  .village-open-btn{
+    flex:none; display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    background: rgba(232,196,104,0.08); border:1px solid var(--gold); border-radius:10px;
+    padding:10px 12px; cursor:pointer; color:var(--parchment); font-family:inherit;
+    transition: background .15s ease, transform .08s ease;
+  }
+  .village-open-btn:hover{ background: rgba(232,196,104,0.16); }
+  .village-open-btn:active{ transform:translateY(1px); }
+  .village-open-btn .u-icon{ width:22px; height:22px; }
+  .village-open-text{ flex:1; display:flex; flex-direction:column; font-weight:800; font-size:12px; }
+  .village-open-text small{ font-weight:600; font-size:9.5px; color:var(--parchment-dim); text-transform:none; letter-spacing:0; margin-top:1px; }
+  .village-open-balance{ display:flex; align-items:center; gap:4px; font-weight:800; font-size:13px; font-variant-numeric:tabular-nums; }
+  .village-open-balance .icon{ width:15px; height:15px; }
+
+  .modal-overlay{ position:fixed; inset:0; background:rgba(10,8,5,0.72); display:none; align-items:center; justify-content:center; z-index:70; padding:20px; }
+  .modal-overlay.show{ display:flex; }
+  .modal-card{
+    background: linear-gradient(180deg, var(--panel-2), var(--panel)); border:2px solid var(--stone); border-radius:16px;
+    box-shadow:0 20px 44px rgba(0,0,0,0.5); width:100%; max-width:480px; max-height:min(640px, 88vh);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  .modal-card.village-modal{ max-width:640px; max-height:min(760px, 92vh); }
+  .modal-head{ flex:none; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line); }
+  .modal-close{ flex:none; background:none; border:1px solid var(--line); color:var(--parchment-dim); width:28px; height:28px; border-radius:8px; font-size:16px; line-height:1; cursor:pointer; }
+  .modal-close:hover{ color:var(--danger); border-color:var(--danger); }
+  .modal-body{ padding:14px 16px 16px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; min-height:0; }
+  .modal-body .shop-list{ flex:none; max-height:34vh; }
+
+  /* ---- Bestiary ---- */
+  .bestiary-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(84px, 1fr)); gap:10px; }
+  .bestiary-tile{ background:rgba(0,0,0,0.22); border:1px solid var(--line); border-radius:10px; padding:8px; display:flex; flex-direction:column; align-items:center; gap:5px; text-align:center; }
+  .bestiary-sprite{ width:48px; height:48px; }
+  .bestiary-sprite svg{ width:100%; height:100%; image-rendering:pixelated; }
+  .bestiary-tile.locked .bestiary-sprite svg{ filter:brightness(0); opacity:0.7; }
+  .bestiary-name{ font-size:10.5px; font-weight:800; }
+  .bestiary-tile.locked .bestiary-name{ color:var(--parchment-dim); font-style:italic; }
+  .bestiary-lore{ font-size:9.5px; color:var(--parchment-dim); line-height:1.3; }
+  .bestiary-power{ font-size:9.5px; color:var(--level-accent); line-height:1.3; }
+  .bestiary-power b{ color:var(--parchment); }
+
+  /* ---- Village scene: a little town, not an icon strip ---- */
+  .village-scene{
+    flex:none; position:relative; height:240px; border-radius:14px; overflow:hidden; border:1px solid var(--stone);
+    background: linear-gradient(180deg, #2a3a52 0%, #46523a 46%, #2f3a24 46%, #17200f 100%);
+  }
+  .village-decor-item{ position:absolute; image-rendering:pixelated; opacity:0.85; pointer-events:none; }
+  .village-decor-item svg{ width:100%; height:100%; image-rendering:pixelated; }
+  .village-tile{
+    position:absolute; transform:translate(-50%,-50%);
+    display:flex; flex-direction:column; align-items:center; gap:2px; width:76px;
+    opacity:0.4; filter:grayscale(1); transition:opacity .3s ease, filter .3s ease;
+  }
+  .village-tile.built{ opacity:1; filter:none; }
+  .village-tile-icon{ width:52px; height:52px; filter:drop-shadow(0 6px 3px rgba(0,0,0,0.5)); }
+  .village-tile-icon svg{ width:100%; height:100%; image-rendering:pixelated; }
+  .village-tile-ground{ width:40px; height:9px; border-radius:50%; background:rgba(0,0,0,0.4); margin-top:-5px; filter:blur(1px); }
+  .village-tile-lvl{ font-size:9.5px; font-weight:800; color:var(--parchment-dim); text-transform:uppercase; letter-spacing:0.3px; background:rgba(15,12,8,0.55); padding:1px 7px; border-radius:999px; }
+  .village-tile.built .village-tile-lvl{ color:var(--gold); text-transform:none; }
+
+  /* ---- Gambling Den ---- */
+  .gamble-box{ flex:none; border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:rgba(0,0,0,0.2); display:flex; flex-direction:column; gap:8px; }
+  .gamble-head{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:800; }
+  .gamble-head .u-icon{ width:16px; height:16px; }
+  .gamble-tokens{ margin-left:auto; font-size:11px; font-weight:700; color:var(--gold); }
+  .gamble-desc{ font-size:10px; color:var(--parchment-dim); margin:0; }
+  #gambleLocked{ text-align:center; padding:10px 4px; }
+  #gambleLocked[hidden]{ display:none; }
+  #gambleLocked .gamble-desc{ font-size:11px; }
+  #gambleContent{ display:flex; flex-direction:column; gap:8px; }
+  #gambleContent[hidden]{ display:none; }
+  .gamble-actions{ display:flex; gap:6px; }
+  .gamble-btn{
+    flex:1; background:linear-gradient(180deg,#8a6fc9,#5a3f8c); color:#f3edff; border:none; border-radius:8px;
+    padding:9px 4px; font-weight:800; font-size:10.5px; cursor:pointer; box-shadow:0 3px 0 #33245a;
+    transition: transform .08s ease, box-shadow .08s ease, filter .15s ease;
+  }
+  .gamble-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #33245a; }
+  .gamble-btn:disabled{ filter:grayscale(0.6) brightness(0.6); cursor:not-allowed; box-shadow:0 3px 0 #1a1a1a; }
+  .gamble-result{ font-size:11px; font-weight:700; min-height:14px; text-align:center; }
+  .gamble-result.win{ color:#9be27a; }
+  .gamble-result.lose{ color:var(--danger); }
+
+  .roulette-wrap{ position:relative; width:120px; height:120px; margin:2px auto 4px; }
+  .roulette-wheel{
+    width:100%; height:100%; border-radius:50%; border:4px solid #3a2c0d;
+    box-shadow:0 6px 14px rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,255,255,0.15);
+    transition: transform 3.6s cubic-bezier(0.13,0.85,0.22,1);
+  }
+  .roulette-hub{ position:absolute; inset:0; margin:auto; width:14px; height:14px; border-radius:50%; background:var(--gold); border:2px solid #3a2c0d; }
+  .roulette-pointer{
+    position:absolute; top:-8px; left:50%; transform:translateX(-50%); z-index:2;
+    width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-top:12px solid var(--gold);
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+  }
+  .roulette-bet-btn{ position:relative; }
+  .roulette-bet-btn[data-color="red"]{ background:linear-gradient(180deg,#d9564a,#8a2c22); }
+  .roulette-bet-btn[data-color="black"]{ background:linear-gradient(180deg,#3a3a3a,#161616); }
+  .roulette-bet-btn[data-color="green"]{ background:linear-gradient(180deg,#4e9a4e,#245a24); }
+  .roulette-bet-btn.active{ outline:2px solid var(--gold); outline-offset:2px; }
+
+  .footer-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .reset-btn{ background:none; border:1px solid var(--line); color:var(--parchment-dim); font-size:10px; padding:6px 10px; border-radius:8px; cursor:pointer; }
+  .reset-btn:hover{ color:var(--danger); border-color:var(--danger); }
+  .credit{ font-size:9.5px; color:var(--parchment-dim); opacity:0.7; }
+
+  .toast-wrap{ position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:50; display:flex; flex-direction:column; gap:6px; align-items:center; }
+  .toast{ background:rgba(20,24,16,0.95); border:1px solid var(--gold); color:var(--gold); font-size:11px; padding:8px 16px; border-radius:999px; box-shadow:0 6px 14px rgba(0,0,0,0.4); animation: toastIn .25s ease, toastOut .4s ease 2.6s forwards; }
+
+  @keyframes bob{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-6px);} }
+  @keyframes hitshake{ 0%{transform:translate(0,0) rotate(0);} 25%{transform:translate(-4px,1px) rotate(-3deg);} 50%{transform:translate(3px,-1px) rotate(2deg);} 75%{transform:translate(-2px,0) rotate(-1deg);} 100%{transform:translate(0,0) rotate(0);} }
+  @keyframes dieOut{ to{ transform:scale(0.3) translateY(20px); opacity:0; } }
+  @keyframes floatUp{ 0%{ opacity:1; transform:translateY(0) scale(1);} 100%{ opacity:0; transform:translateY(-58px) scale(1.15);} }
+  @keyframes pulse{ 0%,100%{ opacity:0.55; transform:scale(0.94);} 50%{ opacity:0.95; transform:scale(1.05);} }
+  @keyframes bossFlash{ 0%{opacity:0;} 15%{opacity:0.55;} 100%{opacity:0;} }
+  @keyframes bannerDrop{ from{ transform:translate(-50%,-14px); opacity:0;} to{ transform:translate(-50%,0); opacity:1;} }
+  @keyframes toastIn{ from{ opacity:0; transform:translateY(-8px);} to{ opacity:1; transform:translateY(0);} }
+  @keyframes toastOut{ to{ opacity:0; transform:translateY(-8px);} }
+  @keyframes coinFly{
+    0%{ transform:translate(0,0) scale(1) rotate(0deg); opacity:1; }
+    35%{ transform:translate(var(--dx1), var(--dy1)) scale(1.15) rotate(140deg); opacity:1; }
+    100%{ transform:translate(var(--dx2), var(--dy2)) scale(0.3) rotate(280deg); opacity:0.2; }
+  }
+  @keyframes coinPulse{ 0%{transform:scale(1);} 45%{transform:scale(1.4);} 100%{transform:scale(1);} }
+  @keyframes addPop{ from{ transform:translateX(-50%) scale(0.4); opacity:0; } to{ transform:translateX(-50%) scale(1); opacity:1; } }
+  @keyframes bigShake{
+    0%{ transform:translate(0,0) rotate(0); }
+    15%{ transform:translate(-10px,4px) rotate(-1.2deg); }
+    30%{ transform:translate(9px,-5px) rotate(1deg); }
+    45%{ transform:translate(-7px,3px) rotate(-0.8deg); }
+    60%{ transform:translate(6px,-2px) rotate(0.6deg); }
+    75%{ transform:translate(-3px,1px) rotate(-0.3deg); }
+    100%{ transform:translate(0,0) rotate(0); }
+  }
+  @keyframes tugShake{
+    0%{ transform:translate(0,0); }
+    20%{ transform:translate(14px,6px); }
+    45%{ transform:translate(-6px,-2px); }
+    70%{ transform:translate(3px,1px); }
+    100%{ transform:translate(0,0); }
+  }
+  @keyframes particleBurst{
+    0%{ transform:translate(0,0) scale(1); opacity:1; }
+    100%{ transform:translate(var(--dx),var(--dy)) scale(0.2); opacity:0; }
+  }
+  @keyframes webStrandFade{
+    0%{ opacity:0; transform:scaleY(0.4); }
+    30%{ opacity:0.9; transform:scaleY(1); }
+    100%{ opacity:0; transform:scaleY(1); }
+  }
+
+  .arena.boss-shake{ animation:bigShake .45s ease; }
+  .arena.tug-shake{ animation:tugShake .4s cubic-bezier(.36,.07,.19,.97); }
+
+  .fx-particle{
+    position:absolute; width:5px; height:5px; border-radius:50%;
+    pointer-events:none; animation:particleBurst .55s ease-out forwards;
+    box-shadow:0 0 6px currentColor;
+  }
+  .web-strand{
+    position:absolute; left:50%; top:18%; width:3px; height:60%;
+    background:linear-gradient(180deg, rgba(216,216,224,0.9), rgba(216,216,224,0));
+    transform-origin:top center; pointer-events:none;
+    animation:webStrandFade .5s ease-out forwards;
+  }
+  @keyframes regenFlash{ 0%,100%{ filter:none; } 40%{ filter:brightness(1.8) saturate(0.4); } }
+
+  @media (prefers-reduced-motion: reduce){
+    .stage .sprite-wrap, .stage.boss .aura, .add-sprite{ animation:none !important; }
+    .sprite-wrap.hit, .add-sprite.hit, .stage.dying .sprite-wrap{ animation:none !important; }
+    .floater{ animation:none !important; opacity:0; }
+    .coin{ animation:none !important; display:none !important; }
+    .currency.gold-pulse .icon{ animation:none !important; }
+    .add-wrap.show{ animation:none !important; }
+    .hp-fill.regen-flash{ animation:none !important; }
+    .roulette-wheel{ transition:none !important; }
+    .angel-orbit, .angel-icon{ animation:none !important; }
+    .matti-angels.show .angel-orbit-1{ transform:rotate(0deg); }
+    .matti-angels.show .angel-orbit-2{ transform:rotate(120deg); }
+    .matti-angels.show .angel-orbit-3{ transform:rotate(240deg); }
+  }
+
+  /* ---- Mobile: one full screen at a time -- the arena by default, with
+     a button to swap to a full-screen Upgrades panel, and back again.
+     No shared half-and-half split, so there's a whole page for the fight
+     and a whole page for the shop instead of both being cramped. ---- */
+  .mobile-panel-btn, .mobile-back-btn{ display:none; }
+  @media (max-width: 760px){
+    body{ padding:8px 8px 8px; }
+    .main{ display:block; position:relative; }
+    .arena{ height:100%; padding-bottom:2px; }
+    .stage{ width:170px; height:170px; }
+    .buy{ padding:10px 10px; font-size:11px; }
+    .stat-grid{ font-size:11px; gap:6px 10px; }
+    .panel{ padding:12px; gap:6px; height:100%; }
+    .modal-card{ max-height:94vh; max-height:94dvh; }
+    .panel{ overflow-y:auto; }
+    .panel-section{ flex:none !important; }
+    .mobile-panel-btn{
+      display:flex; align-items:center; justify-content:center;
+      position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+      background: linear-gradient(180deg, #f0d488, var(--gold)); color:#3a2c0d; border:none;
+      padding:9px 18px; border-radius:999px; font-weight:900; font-size:11px; cursor:pointer;
+      box-shadow:0 3px 0 #8a6a1f; z-index:5; font-family:inherit; white-space:nowrap;
+    }
+    .mobile-back-btn{
+      display:block; flex:none; background:rgba(0,0,0,0.25); border:1px solid var(--line); color:var(--parchment);
+      padding:8px 10px; border-radius:8px; font-size:11px; font-weight:800; cursor:pointer; margin-bottom:4px;
+      font-family:inherit; text-align:left;
+    }
+    /* Only one of arena / panel is visible at a time -- toggled by adding
+       .mobile-show-panel to .app (see ui.js). */
+    .app.mobile-show-panel .arena{ display:none; }
+    .app:not(.mobile-show-panel) .panel{ display:none; }
+    .shop-list{ flex:none !important; max-height:150px; }
+    .village-open-btn{ padding:8px 10px; gap:8px; }
+    .village-open-text small{ display:none; }
+    .u-icon{ width:16px; height:16px; }
+    .village-open-btn .u-icon{ width:20px; height:20px; }
+    .currencies{ gap:6px; }
+    .currency{ gap:4px; }
+    .currency small{ display:none; }
+    .account-btn{ padding:5px 8px; font-size:9.5px; }
+  }

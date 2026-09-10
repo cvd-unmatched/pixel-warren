@@ -1,0 +1,247 @@
+<title>Pixel Warren</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Crect width='12' height='12' fill='%2314401f'/%3E%3Crect x='3' y='2' width='6' height='1' fill='%2314401f'/%3E%3Crect x='2' y='3' width='8' height='7' fill='%233fa34d'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%238fe08a'/%3E%3Crect x='8' y='4' width='1' height='1' fill='%238fe08a'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%23fff'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%23111'/%3E%3Crect x='7' y='6' width='1' height='1' fill='%23fff'/%3E%3Crect x='8' y='6' width='1' height='1' fill='%23111'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@500;700;800;900&display=swap">
+<link rel="stylesheet" href="style.css">
+
+<div class="app">
+  <div class="toast-wrap" id="toastWrap"></div>
+  <div class="coin-layer" id="coinLayer"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 12 12" id="brandMark"></svg>
+      <div>
+        <h1 class="pixel-font">PIXEL WARREN</h1>
+        <span>a little monster-thumping idle</span>
+      </div>
+    </div>
+    <div class="currencies">
+      <div class="currency" id="goldCurrency" tabindex="0"
+           data-tooltip="Earned by defeating monsters. Spend it in the Camp Shop for upgrades that reset on your next Ascend.">
+        <svg class="icon" viewBox="0 0 8 8" id="goldIcon"></svg>
+        <div><b id="goldCount">0</b><small>Gold</small></div>
+      </div>
+      <div class="currency" id="blessCurrency" tabindex="0"
+           data-tooltip="Earned by Ascending, unlocked once you defeat the Ancient Dragon. Spend them in the Village for buildings that survive every Ascend.">
+        <svg class="icon" viewBox="0 0 8 8" id="blessIcon"></svg>
+        <div><b id="blessCount">0</b><small>Blessings</small></div>
+      </div>
+      <div class="currency" id="tokenCurrency" tabindex="0"
+           data-tooltip="Dropped by realm bosses, and by regular kills with Luck upgrades. Spend them in the Village's Gambling Den.">
+        <span class="icon" id="tokenIcon"></span>
+        <div><b id="tokenCount">0</b><small>Tokens</small></div>
+      </div>
+      <div class="save-dot" id="saveDot" title="Saved"></div>
+      <button class="account-btn" id="accountBtn">Sign In</button>
+    </div>
+  </header>
+
+  <div class="level-strip">
+    <div class="level-row">
+      <div class="name">Realm: <em id="levelName">Whispering Forest</em></div>
+      <div class="track"><i id="levelProgress"></i></div>
+      <div class="count" id="levelCount">0 / 8</div>
+    </div>
+    <p class="level-lore" id="levelLore"></p>
+  </div>
+
+  <div class="main">
+    <section class="arena" id="arena">
+      <div class="arena-sky" id="arenaSky"></div>
+      <div class="arena-decor" id="arenaDecor"></div>
+      <div class="flash" id="flash"></div>
+      <div class="boss-banner" id="bossBanner">Boss encounter</div>
+      <button class="pip-btn" id="pipBtn" title="Pop out battle view" aria-label="Pop out battle view">&#10697;</button>
+      <button class="mobile-panel-btn" id="mobilePanelToggle">Upgrades &amp; Stats</button>
+
+      <div class="arena-content" id="arenaContent">
+        <div class="enemy-label">
+          <div class="name" id="enemyName">Slime</div>
+          <div class="sub" id="enemySub"></div>
+        </div>
+
+        <div class="stage" id="stage">
+          <div class="sprite-glow"></div>
+          <div class="aura"></div>
+          <div class="matti-angels" id="mattiAngels">
+            <div class="angel-orbit angel-orbit-1"><div class="angel-icon"></div></div>
+            <div class="angel-orbit angel-orbit-2"><div class="angel-icon"></div></div>
+            <div class="angel-orbit angel-orbit-3"><div class="angel-icon"></div></div>
+          </div>
+          <div class="floaters" id="floaters"></div>
+          <div class="sprite-wrap" id="spriteWrap"></div>
+          <div class="add-wrap" id="addWrap">
+            <div class="add-label" id="addLabel"></div>
+            <div class="add-sprite" id="addSpriteWrap"></div>
+            <div class="add-hp-track"><div class="add-hp-fill" id="addHpFill"></div></div>
+          </div>
+          <form class="math-gate" id="mathGateBox">
+            <div class="math-gate-q"><span id="mathGateQ">2 + 2</span> = ?</div>
+            <input class="math-gate-input" id="mathGateInput" type="number" inputmode="numeric" autocomplete="off">
+            <button class="math-gate-submit" type="submit">Answer</button>
+          </form>
+        </div>
+
+        <div class="hp-wrap">
+          <div class="hp-track"><div class="hp-fill" id="hpFill"></div></div>
+          <div class="hp-text" id="hpText">10 / 10</div>
+        </div>
+        <button class="challenge-btn" id="challengeBtn" hidden>Challenge the boss</button>
+        <button class="flee-btn" id="fleeBtn" hidden>Flee</button>
+        <div class="hint" id="hint">tap the monster to attack</div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <button class="mobile-back-btn" id="mobilePanelClose">&larr; Back to battle</button>
+      <div>
+        <h2>Hunter Stats</h2>
+        <div class="stat-grid">
+          <div class="stat"><span>Click dmg</span><b id="statClick">1</b></div>
+          <div class="stat"><span>Auto dmg/s</span><b id="statDps">0</b></div>
+          <div class="stat"><span>Crit chance</span><b id="statCrit">0%</b></div>
+          <div class="stat"><span>Crit power</span><b id="statCritMult">1.5x</b></div>
+          <div class="stat"><span>Gold gain</span><b id="statGold">1.0x</b></div>
+          <div class="stat"><span>Kills</span><b id="statKills">0</b></div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h2>Camp Shop</h2>
+        <div class="shop-list" id="shopList"></div>
+      </div>
+
+      <div class="prestige-box" id="prestigeBox" style="display:none;">
+        <h2 style="margin:0;">Ancient Blessing</h2>
+        <p id="prestigeInfo">Defeat the Ancient Dragon, then Ascend to trade this run for Blessings and unlock the Village.</p>
+        <button class="ascend-btn" id="ascendBtn">Ascend for <span id="ascendGain">0</span> Blessings</button>
+      </div>
+
+      <button class="village-open-btn" id="villageOpenBtn">
+        <span class="u-icon" id="villageOpenIcon"></span>
+        <span class="village-open-text">Village<small>permanent buildings &amp; the Gambling Den</small></span>
+        <span class="village-open-balance"><svg class="icon" viewBox="0 0 8 8" id="villageBlessIcon"></svg><b id="villageBlessCount">0</b></span>
+      </button>
+
+      <button class="village-open-btn" id="bestiaryOpenBtn">
+        <span class="u-icon" id="bestiaryOpenIcon"></span>
+        <span class="village-open-text">Bestiary<small>every monster you've defeated, and what you haven't found yet</small></span>
+        <span class="village-open-balance"><b id="bestiaryCount">0</b><small style="font-weight:600;">/<span id="bestiaryTotal">0</span></small></span>
+      </button>
+
+      <button class="village-open-btn" id="achvOpenBtn">
+        <span class="u-icon" id="achvOpenIcon"></span>
+        <span class="village-open-text">Achievements<small>milestones earned along the way</small></span>
+        <span class="village-open-balance"><b id="achvCount">0</b><small style="font-weight:600;">/<span id="achvTotal">0</span></small></span>
+      </button>
+
+      <div class="footer-row">
+        <span class="credit">progress saves automatically</span>
+        <button class="reset-btn" id="resetBtn">reset save</button>
+      </div>
+    </aside>
+  </div>
+
+  <div class="modal-overlay" id="villageOverlay">
+    <div class="modal-card village-modal">
+      <div class="modal-head">
+        <h2 style="margin:0;">Village <span class="village-balance"><svg class="icon" viewBox="0 0 8 8" id="villageModalBlessIcon"></svg><b id="villageModalBlessCount">0</b> to spend</span></h2>
+        <button class="modal-close" id="villageCloseBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="village-blurb">Permanent buildings, paid for with Blessings. They survive every Ascend.</p>
+        <div class="village-scene" id="villageScene"></div>
+        <div class="shop-list" id="villageList"></div>
+        <div class="gamble-box">
+          <div class="gamble-head"><span class="u-icon" id="gambleIcon"></span>Gambling Den: Roulette <span id="gambleTokenCount" class="gamble-tokens"></span></div>
+          <div id="gambleLocked">
+            <p class="gamble-desc">Build the Casino above to open the Gambling Den.</p>
+          </div>
+          <div id="gambleContent">
+            <p class="gamble-desc">Realm bosses always drop a token; Luck upgrades give regular kills a shot at one too. Spend a token to spin: pick a color, choose your wager. Red/Black pay 1:1, Green pays 35:1.</p>
+            <div class="roulette-wrap">
+              <div class="roulette-pointer"></div>
+              <div class="roulette-wheel" id="rouletteWheel"></div>
+              <div class="roulette-hub"></div>
+            </div>
+            <div class="gamble-actions" id="rouletteColors">
+              <button class="gamble-btn roulette-bet-btn" id="betRed" data-color="red">Red</button>
+              <button class="gamble-btn roulette-bet-btn" id="betBlack" data-color="black">Black</button>
+              <button class="gamble-btn roulette-bet-btn" id="betGreen" data-color="green">Green 35x</button>
+            </div>
+            <div class="gamble-actions">
+              <button class="gamble-btn" id="gamble25" data-frac="0.25">Spin 25%</button>
+              <button class="gamble-btn" id="gamble50" data-frac="0.5">Spin 50%</button>
+              <button class="gamble-btn" id="gambleAll" data-frac="1">Spin all in</button>
+            </div>
+            <div class="gamble-result" id="gambleResult"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="bestiaryOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 style="margin:0;">Bestiary <span class="village-balance"><b id="bestiaryModalCount">0</b>/<span id="bestiaryModalTotal">0</span> found</span></h2>
+        <button class="modal-close" id="bestiaryCloseBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="village-blurb">Every monster you've defeated at least once, and a silhouette for the ones you haven't found yet.</p>
+        <div class="bestiary-grid" id="bestiaryGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="achvOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 style="margin:0;">Achievements <span class="village-balance"><b id="achvModalCount">0</b>/<span id="achvModalTotal">0</span> earned</span></h2>
+        <button class="modal-close" id="achvCloseBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="village-blurb">Milestones you've reached in the Warren. They stick around through every Ascend.</p>
+        <div class="bestiary-grid" id="achvGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="accountOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 style="margin:0;">Account</h2>
+        <button class="modal-close" id="accountCloseBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="accountLoggedOut">
+          <p class="village-blurb">Sign in to keep your progress on this account and show up on the leaderboard. Playing without an account still works -- progress just stays on this device.</p>
+          <div class="account-tabs">
+            <button class="account-tab active" id="tabSignIn" type="button">Sign In</button>
+            <button class="account-tab" id="tabSignUp" type="button">Sign Up</button>
+          </div>
+          <form class="account-form" id="authForm">
+            <input class="account-input" type="text" id="authUsername" placeholder="Username" autocomplete="username" required minlength="3" maxlength="24">
+            <input class="account-input" type="password" id="authPassword" placeholder="Password" autocomplete="current-password" required minlength="8" maxlength="200">
+            <button class="ascend-btn" type="submit" id="authSubmitBtn">Sign In</button>
+            <div class="account-error" id="authError"></div>
+          </form>
+        </div>
+        <div id="accountLoggedIn" hidden>
+          <p class="village-blurb">Signed in as <b id="accountUsername"></b>. Your progress syncs to this account.</p>
+          <button class="reset-btn" id="logoutBtn">Log out</button>
+        </div>
+        <h2 style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--gold); margin:16px 0 8px;">Leaderboard</h2>
+        <div class="leaderboard-list" id="leaderboardList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/sprites.js"></script>
+<script src="js/content.js"></script>
+<script src="js/state.js"></script>
+<script src="js/render.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/ui.js"></script>

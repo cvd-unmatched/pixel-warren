@@ -1,0 +1,17 @@
+{
+  "name": "pixel-warren",
+  "version": "1.0.0",
+  "description": "A pixel-art monster-hunting idle game with file-backed save progress.",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build:artifact": "node scripts/build-artifact.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "mariadb": "^3.5.4"
+  }
+}

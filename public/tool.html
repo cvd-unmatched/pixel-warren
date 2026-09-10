@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel Warren -- Monster Editor</title>
+<link rel="stylesheet" href="tool.css">
+</head>
+<body>
+  <header class="tool-header">
+    <h1>Monster Sprite Editor</h1>
+    <div class="tool-header-actions">
+      <a href="/" class="tool-link">&larr; back to game</a>
+    </div>
+  </header>
+
+  <div class="tool-layout">
+    <aside class="tool-panel tool-panel-left">
+      <section class="tool-section">
+        <h2>Monster</h2>
+        <label class="tool-field">
+          <span>Load existing</span>
+          <select id="monsterSelect"></select>
+        </label>
+        <div class="tool-row">
+          <input type="text" id="newKeyInput" placeholder="newMonsterKey">
+          <input type="number" id="newSizeInput" value="100" min="4" max="128" title="grid size">
+          <button id="newMonsterBtn">New</button>
+        </div>
+        <div class="tool-row">
+          <button id="duplicateBtn">Duplicate</button>
+          <button id="resizeBtn">Resize canvas</button>
+        </div>
+      </section>
+
+      <section class="tool-section">
+        <h2>Reference image</h2>
+        <input type="file" id="refFileInput" accept="image/*">
+        <label class="tool-field">
+          <span>Opacity <span id="refOpacityVal">50%</span></span>
+          <input type="range" id="refOpacity" min="0" max="100" value="50">
+        </label>
+        <label class="tool-field">
+          <span>Scale</span>
+          <div class="tool-row" style="margin-bottom:0;">
+            <input type="range" id="refScale" min="10" max="2000" value="100" step="1" style="flex:1;">
+            <input type="number" id="refScaleNum" value="100" min="1" max="4000" step="0.1" style="width:70px;">
+            <span>%</span>
+          </div>
+        </label>
+        <label class="tool-checkbox">
+          <input type="checkbox" id="refMoveMode">
+          <span>Drag to reposition reference (scroll = scale)</span>
+        </label>
+        <div class="nudge-pad">
+          <span></span><button id="nudgeUp" title="Nudge up">&#9650;</button><span></span>
+          <button id="nudgeLeft" title="Nudge left">&#9664;</button>
+          <span class="nudge-label">nudge</span>
+          <button id="nudgeRight" title="Nudge right">&#9654;</button>
+          <span></span><button id="nudgeDown" title="Nudge down">&#9660;</button><span></span>
+        </div>
+        <div class="tool-row">
+          <button id="refResetBtn">Reset position</button>
+          <button id="refClearBtn">Remove image</button>
+        </div>
+        <div class="tool-row">
+          <label class="tool-field" style="flex:1;">
+            <span>Auto-trace colors</span>
+            <input type="number" id="autoTraceColors" value="16" min="2" max="32">
+          </label>
+        </div>
+        <div class="tool-row">
+          <button id="autoTraceBtn" style="flex:1;">Auto-trace to pixels</button>
+        </div>
+      </section>
+
+      <section class="tool-section">
+        <h2>View</h2>
+        <label class="tool-field">
+          <span>Zoom <span id="zoomVal">6px/cell</span></span>
+          <input type="range" id="zoomRange" min="1" max="20" value="6">
+        </label>
+        <label class="tool-checkbox">
+          <input type="checkbox" id="gridLinesToggle" checked>
+          <span>Show grid lines</span>
+        </label>
+        <label class="tool-checkbox">
+          <input type="checkbox" id="mirrorXToggle">
+          <span>Mirror paint (X axis)</span>
+        </label>
+        <label class="tool-field">
+          <span>Backdrop (spot trailing/stray pixels)</span>
+          <div class="bg-swatches" id="bgSwatches">
+            <button data-bg="checker" class="active" title="Checkered">▦</button>
+            <button data-bg="black" title="Black"></button>
+            <button data-bg="white" title="White"></button>
+            <button data-bg="red" title="Red"></button>
+            <button data-bg="magenta" title="Magenta"></button>
+          </div>
+        </label>
+      </section>
+    </aside>
+
+    <main class="tool-canvas-area">
+      <div class="tool-toolbar">
+        <button class="tool-btn" data-tool="pencil" title="Pencil">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 3.5l3 3L6 17l-4 1 1-4L13.5 3.5z"/><path d="M12 5l3 3"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="eraser" title="Eraser">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14l6-8 4 3-6 8H8z"/><path d="M8 17h8"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="fill" title="Fill bucket">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l6-6 7 7-6 6z"/><path d="M3 9h10"/><path d="M14 12c1 1.5 2 2.2 2 3.3a2 2 0 1 1-4 0c0-1.1 1-1.8 2-3.3z"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="eyedrop" title="Eyedropper">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3l4 4-2.5 2.5-4-4z"/><path d="M10.5 5.5L4 12v3.5h3.5L14 9"/><path d="M4 15.5l-1 3 3-1"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="line" title="Line">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="4.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="4.5" r="1.3" fill="currentColor" stroke="none"/><path d="M5.5 14.5l9-9"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="rect" title="Rectangle">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.5" y="5" width="13" height="10" rx="1"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="ellipse" title="Ellipse">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><ellipse cx="10" cy="10" rx="7" ry="5.2"/></svg>
+        </button>
+        <span class="tool-sep"></span>
+        <label class="brush-size-field" title="Brush/eraser size">
+          <span>size</span>
+          <input type="number" id="brushSize" value="1" min="1" max="20">
+        </label>
+        <span class="tool-sep"></span>
+        <button id="undoBtn" title="Undo">Undo</button>
+        <button id="redoBtn" title="Redo">Redo</button>
+      </div>
+      <div class="tool-stage-wrap">
+        <div class="tool-stage" id="stage">
+          <img id="refImg" alt="" hidden>
+          <canvas id="gridCanvas"></canvas>
+        </div>
+      </div>
+      <p class="tool-hint" id="statusLine">Pick or create a monster to begin.</p>
+    </main>
+
+    <aside class="tool-panel tool-panel-right">
+      <section class="tool-section">
+        <h2>Palette</h2>
+        <div id="paletteList" class="palette-list"></div>
+        <div class="tool-row">
+          <input type="text" id="newPaletteKey" maxlength="1" placeholder="key" size="2">
+          <input type="color" id="newPaletteColor" value="#808080">
+          <button id="addPaletteBtn">Add</button>
+        </div>
+      </section>
+
+      <section class="tool-section">
+        <h2>Export</h2>
+        <div class="tool-row">
+          <button id="saveToFileBtn">Save into sprites.js</button>
+        </div>
+        <div class="tool-row">
+          <button id="genCodeBtn">Generate code</button>
+          <button id="copyCodeBtn">Copy</button>
+        </div>
+        <textarea id="codeOutput" rows="10" readonly placeholder="Generated code appears here"></textarea>
+      </section>
+    </aside>
+  </div>
+
+  <script src="js/sprites.js"></script>
+  <script src="js/tool.js"></script>
+</body>
+</html>

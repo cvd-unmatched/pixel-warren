@@ -1,0 +1,108 @@
+*{box-sizing:border-box;}
+body{
+  margin:0; font-family:system-ui,sans-serif; background:#1a1612; color:#e8e0d0;
+  min-height:100vh;
+}
+.tool-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 18px; background:#241f1a; border-bottom:1px solid #3a332a;
+}
+.tool-header h1{ font-size:16px; margin:0; font-weight:700; }
+.tool-link{ color:#c9a24a; text-decoration:none; font-size:13px; }
+.tool-link:hover{ text-decoration:underline; }
+
+.tool-layout{ display:flex; gap:12px; padding:12px; align-items:flex-start; flex-wrap:wrap; }
+.tool-panel{
+  background:#241f1a; border:1px solid #3a332a; border-radius:8px;
+  padding:12px; width:210px; flex-shrink:0; display:flex; flex-direction:column; gap:14px;
+}
+.tool-section h2{ font-size:12px; text-transform:uppercase; letter-spacing:0.06em; color:#c9a24a; margin:0 0 8px; }
+.tool-field{ display:flex; flex-direction:column; gap:4px; font-size:12px; margin-bottom:8px; }
+.tool-field span{ color:#b8ada0; }
+.tool-checkbox{ display:flex; align-items:center; gap:6px; font-size:12px; color:#b8ada0; margin-bottom:6px; }
+.tool-row{ display:flex; gap:6px; margin-bottom:6px; }
+.tool-row input[type="text"], .tool-row input[type="number"]{
+  flex:1; min-width:0; background:#171310; border:1px solid #3a332a; color:#e8e0d0;
+  border-radius:5px; padding:5px 6px; font-size:12px;
+}
+select, button, textarea{
+  font-family:inherit; font-size:12px;
+}
+select{
+  width:100%; background:#171310; border:1px solid #3a332a; color:#e8e0d0;
+  border-radius:5px; padding:5px 6px;
+}
+button{
+  background:#3a332a; border:1px solid #4a4034; color:#e8e0d0; border-radius:5px;
+  padding:6px 10px; cursor:pointer;
+}
+button:hover{ background:#4a4034; }
+button.active{ background:#c9a24a; color:#241f1a; border-color:#c9a24a; }
+input[type="range"]{ width:100%; }
+input[type="file"]{ font-size:11px; color:#b8ada0; margin-bottom:8px; }
+
+.nudge-pad{
+  display:grid; grid-template-columns:28px 28px 28px; gap:4px; justify-content:center;
+  align-items:center; margin-bottom:8px;
+}
+.nudge-pad button{ padding:4px 0; }
+.nudge-label{ font-size:9px; color:#7a7062; text-align:center; }
+
+.bg-swatches{ display:flex; gap:5px; }
+.bg-swatches button{
+  width:26px; height:26px; padding:0; border-radius:5px; font-size:13px;
+  border:1px solid #4a4034;
+}
+.bg-swatches button.active{ box-shadow:0 0 0 2px #c9a24a; }
+.bg-swatches button[data-bg="checker"]{ background:#3a332a; color:#e8e0d0; }
+.bg-swatches button[data-bg="black"]{ background:#000; }
+.bg-swatches button[data-bg="white"]{ background:#fff; }
+.bg-swatches button[data-bg="red"]{ background:#e02020; }
+.bg-swatches button[data-bg="magenta"]{ background:#e020e0; }
+
+.tool-stage-wrap.bg-black{ background:#000; }
+.tool-stage-wrap.bg-white{ background:#fff; }
+.tool-stage-wrap.bg-red{ background:#e02020; }
+.tool-stage-wrap.bg-magenta{ background:#e020e0; }
+
+.tool-canvas-area{ flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:10px; }
+.tool-toolbar{
+  display:flex; gap:6px; align-items:center; background:#241f1a; border:1px solid #3a332a;
+  border-radius:8px; padding:6px; align-self:flex-start;
+}
+.tool-btn{ width:34px; height:30px; display:flex; align-items:center; justify-content:center; color:#e8e0d0; }
+.tool-btn svg{ width:18px; height:18px; display:block; }
+.tool-btn.active{ color:#241f1a; }
+.tool-sep{ width:1px; height:20px; background:#3a332a; margin:0 4px; }
+.brush-size-field{ display:flex; align-items:center; gap:5px; font-size:11px; color:#b8ada0; }
+.brush-size-field input{ width:44px; background:#171310; border:1px solid #3a332a; color:#e8e0d0; border-radius:5px; padding:4px 5px; }
+
+/* No padding here on purpose: this box's background IS the trace backdrop
+   (checker/black/white/red), so its edges must exactly match the sprite's
+   real pixel bounds -- what you see is what you get, nothing bleeds past
+   the actual canvas. Breathing room comes from the flex gap around it. */
+.tool-stage-wrap{
+  border:1px solid #3a332a; border-radius:8px; background:
+    repeating-conic-gradient(#2a251f 0% 25%, #201c17 0% 50%) 0 0/16px 16px;
+  overflow:auto; max-width:100%; max-height:70vh; line-height:0;
+}
+.tool-stage{ position:relative; display:inline-block; line-height:0; }
+#refImg{ position:absolute; top:0; left:0; transform-origin:0 0; pointer-events:none; image-rendering:pixelated; }
+#gridCanvas{ position:relative; display:block; image-rendering:pixelated; cursor:crosshair; }
+
+.tool-hint{ font-size:12px; color:#9a8f80; margin:0; }
+
+.palette-list{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+.palette-swatch{
+  display:flex; align-items:center; gap:4px; border:1px solid #3a332a; border-radius:5px;
+  padding:3px 5px; cursor:pointer; background:#171310;
+}
+.palette-swatch.active{ border-color:#c9a24a; box-shadow:0 0 0 1px #c9a24a inset; }
+.palette-swatch .key{ font-size:11px; font-weight:700; width:12px; text-align:center; }
+.palette-swatch input[type="color"]{ width:18px; height:18px; padding:0; border:none; background:none; }
+.palette-swatch .del{ font-size:10px; color:#a06060; cursor:pointer; padding:0 2px; }
+
+#codeOutput{
+  width:100%; background:#171310; color:#c9c0b0; border:1px solid #3a332a; border-radius:5px;
+  padding:6px; resize:vertical; font-family:ui-monospace,monospace; font-size:10px;
+}
