@@ -34,6 +34,11 @@ from `process.env`, so exporting them directly also works):
   pixels, trace a reference image, save straight into
   `public/js/sprites.js`). Leave unset in production -- it writes to a
   source file on disk.
+- `GOD=true`: every click kills the current target outright, bypassing
+  shields/hydra invulnerability/math gates. For fast testing only.
+- `MONSTERS=true`: enables the monster simulator at `/monsters` -- pick
+  any monster from the full roster and fight it in an isolated test
+  arena, independent of realm progress or your save.
 
 ## Accounts and leaderboard
 

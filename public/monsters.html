@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel Warren -- Monster Simulator</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="monsters.css">
+</head>
+<body>
+  <header class="sim-header">
+    <h1>Monster Simulator</h1>
+    <a href="/" class="sim-link">&larr; back to game</a>
+  </header>
+
+  <div class="sim-layout">
+    <aside class="sim-panel">
+      <label class="sim-field">
+        <span>Monster</span>
+        <select id="monsterSelect"></select>
+      </label>
+      <label class="sim-field">
+        <span>Click damage (% of max HP)</span>
+        <input type="number" id="clickPct" value="8" min="0.1" max="100" step="0.1">
+      </label>
+      <label class="sim-checkbox">
+        <input type="checkbox" id="oneShot">
+        <span>One-shot kill (ignore % above)</span>
+      </label>
+      <button id="respawnBtn">Respawn / reset HP</button>
+      <div class="sim-info" id="simInfo"></div>
+      <div class="sim-abilities" id="simAbilities"></div>
+    </aside>
+
+    <main class="sim-main">
+      <section class="arena" id="arena">
+        <div class="arena-content" id="arenaContent">
+          <div class="enemy-label">
+            <div class="name" id="enemyName">Slime</div>
+            <div class="sub" id="enemySub"></div>
+          </div>
+
+          <div class="stage" id="stage">
+            <div class="sprite-glow"></div>
+            <div class="aura"></div>
+            <div class="matti-angels" id="mattiAngels">
+              <div class="angel-orbit angel-orbit-1"><div class="angel-icon"></div></div>
+              <div class="angel-orbit angel-orbit-2"><div class="angel-icon"></div></div>
+              <div class="angel-orbit angel-orbit-3"><div class="angel-icon"></div></div>
+            </div>
+            <div class="floaters" id="floaters"></div>
+            <div class="sprite-wrap" id="spriteWrap"></div>
+            <div class="add-wrap" id="addWrap">
+              <div class="add-label" id="addLabel"></div>
+              <div class="add-sprite" id="addSpriteWrap"></div>
+              <div class="add-hp-track"><div class="add-hp-fill" id="addHpFill"></div></div>
+            </div>
+            <form class="math-gate" id="mathGateBox">
+              <div class="math-gate-q"><span id="mathGateQ">2 + 2</span> = ?</div>
+              <input class="math-gate-input" id="mathGateInput" type="number" inputmode="numeric" autocomplete="off">
+              <button class="math-gate-submit" type="submit">Answer</button>
+            </form>
+          </div>
+
+          <div class="hp-wrap">
+            <div class="hp-track"><div class="hp-fill" id="hpFill"></div></div>
+            <div class="hp-text" id="hpText">100 / 100</div>
+          </div>
+          <div class="hint" id="hint">tap the monster to attack</div>
+        </div>
+      </section>
+      <p class="sim-toast" id="simToast"></p>
+    </main>
+  </div>
+
+  <script src="js/sprites.js"></script>
+  <script src="js/content.js"></script>
+  <script src="js/monsters-sim.js"></script>
+</body>
+</html>

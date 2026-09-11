@@ -256,6 +256,17 @@
   // or on the Artifact build which has no server at all.
   fetch('api/config').then(function(r){ return r.json(); }).then(function(cfg){
     if(cfg && cfg.bestiaryShowAll){ bestiaryShowAll = true; renderBestiary(); }
+    if(cfg && cfg.godMode){ godMode = true; }
+    // AUTOUPGRADE=<username> on the server: only the matching logged-in
+    // account gets a background loop that auto-buys everything it can
+    // afford. Never a per-player toggle -- has to match a real session.
+    if(cfg && cfg.autoUpgradeUser){
+      checkAuthStatus().then(function(me){
+        if(me && me.loggedIn && me.username === cfg.autoUpgradeUser){
+          setInterval(autoUpgradeTick, 1500);
+        }
+      });
+    }
   }).catch(function(){});
   renderAll(); // paint an immediate default frame while the save loads
   persistLoad().then(function(d){

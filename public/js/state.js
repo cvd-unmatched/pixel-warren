@@ -163,7 +163,6 @@
 
   /* ---------------- Enemy spawning ---------------- */
   function currentLevel(){ return LEVELS[state.levelIndex]; }
-  function scaleForKillIndex(k){ return Math.pow(1.13, k); }
   function titleCase(key){ return key.charAt(0).toUpperCase()+key.slice(1).replace(/([A-Z])/g,' $1'); }
 
   var MATTI_BOSS_CHANCE = 0.02;
@@ -207,10 +206,13 @@
       name = titleCase(key);
     }
     if(key === 'matti') unlockAchievement('gotMattid');
-    // Difficulty scales with total Village levels rather than raw
-    // Blessings, so it stays tied to actual permanent power gained even
-    // after Blessings are spent down to build something.
-    var scale = scaleForKillIndex(state.totalKills) * (1 + totalVillageLevels()*0.35);
+    // HP/gold are a fixed amount per level (baseHp/baseGold), not scaled
+    // by lifetime kill count -- farming click/auto-damage upgrades should
+    // let a strong hunter blow through a level fast, not chase a treadmill
+    // that always re-matches their power. The one difficulty knob left is
+    // total Village levels (a slow, deliberate Ascend/Blessings choice,
+    // not raw grinding), so post-Ascend runs stay meaningfully harder.
+    var scale = 1 + totalVillageLevels()*0.35;
     var hp = Math.round(level.baseHp * scale * (isBoss?level.hpBossMult:1));
     var goldReward = Math.round(level.baseGold * scale * (isBoss?level.goldBossMult:1) * (0.85+Math.random()*0.3));
     return { key:key, name:name, isBoss:isBoss, maxHp:hp, hp:hp, goldReward:goldReward, regenTicksUsed:0,
@@ -295,6 +297,7 @@
   }
   function triggerSummon(ability){
     if(state.addEnemy || !state.enemy) return;
+    if(state.enemy.summonCooldownUntil && Date.now() < state.enemy.summonCooldownUntil) return;
     var addKey = ability.addKey || currentLevel().enemies[0];
     var hp = Math.max(1, Math.round(state.enemy.maxHp * (ability.addHpFrac||0.15)));
     state.addEnemy = { key:addKey, name:titleCase(addKey), hp:hp, maxHp:hp, guardFor:state.enemy.name };
@@ -377,6 +380,7 @@
     tweenGoldTo(state.gold);
     toast('Guardian defeated! '+state.enemy.name+' is exposed again.');
     state.addEnemy = null;
+    state.enemy.summonCooldownUntil = Date.now() + 4000;
     renderEnemy(true);
     renderShop();
     renderStats();

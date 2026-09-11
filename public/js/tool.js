@@ -18,7 +18,8 @@
     drawing: false,
     draggingRef: false,
     dragStart: null,
-    lastPaintCell: null
+    lastPaintCell: null,
+    highlightKey: null
   };
 
   var el = {};
@@ -173,6 +174,7 @@
     el.gridCanvas.width = state.size * px;
     el.gridCanvas.height = state.size * px;
     ctx.clearRect(0, 0, el.gridCanvas.width, el.gridCanvas.height);
+    var hl = state.highlightKey;
     for(var y = 0; y < state.size; y++){
       var row = state.rows[y];
       for(var x = 0; x < state.size; x++){
@@ -180,8 +182,20 @@
         if(ch === '.') continue;
         var color = state.palette[ch];
         if(!color) continue;
+        ctx.globalAlpha = (hl && ch !== hl) ? 0.2 : 1;
         ctx.fillStyle = color;
         ctx.fillRect(x * px, y * px, px, px);
+      }
+    }
+    ctx.globalAlpha = 1;
+    if(hl){
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = px >= 6 ? 2 : 1;
+      for(var hy = 0; hy < state.size; hy++){
+        var hrow = state.rows[hy];
+        for(var hx = 0; hx < state.size; hx++){
+          if(hrow[hx] === hl) ctx.strokeRect(hx * px + 1, hy * px + 1, px - 2, px - 2);
+        }
       }
     }
     if(state.gridLines && px >= 4){
@@ -252,6 +266,14 @@
       row.addEventListener('click', function(){
         state.activeKey = k;
         renderPalette();
+      });
+      row.addEventListener('mouseenter', function(){
+        state.highlightKey = k;
+        render();
+      });
+      row.addEventListener('mouseleave', function(){
+        state.highlightKey = null;
+        render();
       });
       (function(kk, rowEl){
         if(state.activeKey === kk) rowEl.classList.add('active');

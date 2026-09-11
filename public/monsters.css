@@ -1,0 +1,29 @@
+*{box-sizing:border-box;}
+body{ margin:0; font-family:system-ui,sans-serif; background:#1a1612; color:#e8e0d0; min-height:100vh; }
+.sim-header{ display:flex; align-items:center; justify-content:space-between; padding:10px 18px; background:#241f1a; border-bottom:1px solid #3a332a; }
+.sim-header h1{ font-size:16px; margin:0; font-weight:700; }
+.sim-link{ color:#c9a24a; text-decoration:none; font-size:13px; }
+.sim-link:hover{ text-decoration:underline; }
+
+.sim-layout{ display:flex; gap:16px; padding:16px; align-items:flex-start; flex-wrap:wrap; }
+.sim-panel{
+  background:#241f1a; border:1px solid #3a332a; border-radius:8px; padding:14px;
+  width:260px; flex-shrink:0; display:flex; flex-direction:column; gap:12px;
+}
+.sim-field{ display:flex; flex-direction:column; gap:4px; font-size:12px; color:#b8ada0; }
+.sim-field select, .sim-field input{
+  background:#171310; border:1px solid #3a332a; color:#e8e0d0; border-radius:5px; padding:6px 7px; font-size:13px;
+}
+.sim-checkbox{ display:flex; align-items:center; gap:6px; font-size:12px; color:#b8ada0; }
+.sim-panel button{
+  background:#3a332a; border:1px solid #4a4034; color:#e8e0d0; border-radius:5px; padding:8px 10px; cursor:pointer; font-size:13px;
+}
+.sim-panel button:hover{ background:#4a4034; }
+.sim-info{ font-size:12px; color:#c9c0b0; line-height:1.5; border-top:1px solid #3a332a; padding-top:10px; }
+.sim-info strong{ color:#e8e0d0; }
+.sim-abilities{ font-size:12px; color:#c9a24a; line-height:1.6; }
+.sim-abilities .ability-row{ background:#171310; border:1px solid #3a332a; border-radius:5px; padding:6px 8px; margin-bottom:6px; }
+
+.sim-main{ flex:1; min-width:280px; max-width:420px; display:flex; flex-direction:column; gap:10px; }
+.sim-main .arena{ height:560px; }
+.sim-toast{ min-height:18px; font-size:13px; color:#c9a24a; text-align:center; margin:0; }

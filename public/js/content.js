@@ -109,7 +109,7 @@
       // window to hit the body directly. The next wave doubles in size
       // (capped at maxHeads) so the fight always finishes, it just asks
       // for more head-clearing as it goes. See triggerHydraWave.
-      bossAbilities:[ {type:'hydraHeads', headKey:'hydraHead', initialHeads:1, maxHeads:8, headHpFrac:0.08, vulnerableDuration:6000} ] },
+      bossAbilities:[ {type:'hydraHeads', headKey:'hydraHead', initialHeads:1, maxHeads:4, headHpFrac:0.08, vulnerableDuration:6000} ] },
     { key:'peak', name:"Dragon's Peak", enemies:['skeleton','wyvern','boneknight','wyrmling','frostharpy','obsidianwyvern'], boss:'dragon', bossName:"Ancient Dragon",
       baseHp:1100, baseGold:190, accent:'#ffb35c',
       sky:'linear-gradient(180deg,#5a3327 0%, #2f1a1c 55%, #170d10 100%)',

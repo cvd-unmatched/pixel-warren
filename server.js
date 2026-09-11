@@ -321,12 +321,18 @@ async function handleLeaderboard(req, res) {
 // review switch -- reveals every monster's lore/power in the Bestiary
 // regardless of what that player has actually defeated.
 async function handleConfig(req, res) {
-  sendJson(res, 200, { bestiaryShowAll: process.env.BESTIARY === 'true', toolsEnabled: TOOLS_ENABLED });
+  sendJson(res, 200, {
+    bestiaryShowAll: process.env.BESTIARY === 'true',
+    toolsEnabled: TOOLS_ENABLED,
+    godMode: process.env.GOD === 'true',
+    autoUpgradeUser: process.env.AUTOUPGRADE || null
+  });
 }
 
 /* ---------------- Dev-only monster sprite editor (/tool) ----------------
    Gated behind TOOLS=true since it writes straight into a source file. */
 const TOOLS_ENABLED = process.env.TOOLS === 'true';
+const MONSTERS_SIM_ENABLED = process.env.MONSTERS === 'true';
 const SPRITES_FILE = path.join(PUBLIC_DIR, 'js', 'sprites.js');
 const MONSTERS_MARKER = 'var MONSTERS = {';
 
@@ -446,6 +452,11 @@ const server = http.createServer((req, res) => {
   if (url === '/tool' && req.method === 'GET') {
     if (!TOOLS_ENABLED) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not found'); return; }
     req.url = '/tool.html';
+    return serveStatic(req, res);
+  }
+  if (url === '/monsters' && req.method === 'GET') {
+    if (!MONSTERS_SIM_ENABLED) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not found'); return; }
+    req.url = '/monsters.html';
     return serveStatic(req, res);
   }
   if (req.method === 'GET') return serveStatic(req, res);

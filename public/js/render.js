@@ -1,5 +1,15 @@
 "use strict";
 
+  // A monster can optionally carry MONSTERS[key].frames (an array of extra
+  // row-grids sharing the same palette, plus an fps) for a real looping
+  // idle animation instead of a single static pose -- see renderEnemy's
+  // spriteAnimTimer below. `rows` always stays frame 0, so anything that
+  // reads mon.rows directly (Bestiary, icons, etc.) keeps working untouched.
+  var spriteAnimTimer = null;
+  function stopSpriteAnimation(){
+    if(spriteAnimTimer){ clearInterval(spriteAnimTimer); spriteAnimTimer = null; }
+  }
+
   /* ---------------- Rendering ---------------- */
   var el = {
     goldCurrency: document.getElementById('goldCurrency'),
@@ -163,8 +173,16 @@
     el.bossBanner.textContent = shielded ? 'Shielded' : 'Boss encounter';
     el.hpFill.classList.toggle('shielded', shielded);
     if(fresh){
+      stopSpriteAnimation();
       el.spriteWrap.innerHTML = svgFromGrid(mon.rows, mon.palette);
       el.stage.classList.remove('dying');
+      if(mon.frames && mon.frames.length > 1){
+        var frameIdx = 0;
+        spriteAnimTimer = setInterval(function(){
+          frameIdx = (frameIdx + 1) % mon.frames.length;
+          el.spriteWrap.innerHTML = svgFromGrid(mon.frames[frameIdx], mon.palette);
+        }, 1000 / (mon.fps || 6));
+      }
     }
     var pct = Math.max(0, e.hp/e.maxHp*100);
     el.hpFill.style.width = pct+'%';

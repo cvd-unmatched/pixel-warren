@@ -7,6 +7,15 @@
     var target = activeTarget();
     if(!target || target.hp<=0) return;
     var isAdd = !!state.addEnemy;
+    // GOD=true short-circuits every defense (shield, hydra invuln window,
+    // math gate) -- the point is instant kills for testing, not "big hits
+    // that still respect the fight's rules"
+    if(godMode){
+      spawnFloater('-'+fmtDamage(target.hp), 'crit');
+      target.hp = 0;
+      if(isAdd) clearAdd(); else killEnemy();
+      return;
+    }
     if(!isAdd && state.enemy.mathGateActive){
       spawnFloater('?', 'blocked');
       return;
@@ -47,6 +56,7 @@
     spawnFloater('+'+fmt(reward)+'g', 'gold');
     flyCoinsToGold(reward, e.isBoss);
     tweenGoldTo(state.gold);
+    stopSpriteAnimation();
     el.stage.classList.add('dying');
     // refresh buy-button affordability and the kill counter right away --
     // the top-bar gold number ticks up instantly (see tweenGoldTo), so the
@@ -205,6 +215,31 @@
     save();
   }
 
+  // AUTOUPGRADE=<username> on the server auto-buys every affordable
+  // upgrade/village level for that one account, on a timer -- see the
+  // matching check in ui.js boot. One combined render+save at the end
+  // instead of one per purchase, since this can buy a lot in one tick.
+  function autoUpgradeTick(){
+    var boughtAny = false;
+    UPGRADES.forEach(function(u){
+      if(!isUnlocked(u) || isRoleMaxed(u.role)) return;
+      var preview = maxAffordableUpgrade(u);
+      if(preview.count < 1) return;
+      state.gold -= preview.cost;
+      state.upgradeLevels[u.id] = (state.upgradeLevels[u.id]||0) + preview.count;
+      boughtAny = true;
+    });
+    VILLAGE.forEach(function(b){
+      var preview = maxAffordableVillage(b);
+      if(preview.count < 1) return;
+      state.blessings -= preview.cost;
+      state.villageLevels[b.id] = (state.villageLevels[b.id]||0) + preview.count;
+      unlockAchievement('villageFounder');
+      boughtAny = true;
+    });
+    if(boughtAny){ renderAll(); save(); }
+  }
+
   function ascend(){
     if(!finalBeaten) return;
     var gain = blessingGain();
@@ -253,6 +288,10 @@
   // var on the server reveals every monster's lore/power for design
   // review, without needing a per-player toggle in the UI.
   var bestiaryShowAll = false;
+  // Set from GET /api/config at boot -- a GOD=true env var on the server
+  // makes every click lethal, for fast testing/design review. Never a
+  // per-player toggle, same as BESTIARY=true above.
+  var godMode = false;
   function renderBestiary(){
     var keys = bestiaryKeys();
     var found = keys.filter(function(k){ return state.defeated[k]; }).length;
