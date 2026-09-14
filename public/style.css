@@ -1,29 +1,30 @@
   :root{
-    --ink:#1b2118;
-    --ink-2:#242b1e;
-    --parchment:#ece4d3;
-    --parchment-dim:#c9c0ac;
-    --moss:#4a8a4e;
-    --moss-dim:#356338;
-    --ember:#d97b3f;
-    --dusk:#463d63;
-    --gold:#e8c468;
-    --danger:#c65a4a;
-    --shield:#7bc7f0;
-    --panel:#2a3323;
-    --panel-2:#333e29;
-    --stone:#4b4437;
-    --line:rgba(236,228,211,0.14);
-    --shadow: 0 6px 0 rgba(0,0,0,0.35);
+    --ink:#0c0a09;
+    --ink-2:#161210;
+    --parchment:#d8d2c6;
+    --parchment-dim:#9b9186;
+    --moss:#6a8f52;
+    --moss-dim:#2e4526;
+    --ember:#b8552a;
+    --dusk:#3a2f52;
+    --gold:#c9a24a;
+    --danger:#a3312e;
+    --shield:#6fa0bf;
+    --blood:#5c1414;
+    --panel:#171310;
+    --panel-2:#211c18;
+    --stone:#3a332c;
+    --line:rgba(216,210,198,0.10);
+    --shadow: 0 6px 0 rgba(0,0,0,0.55);
     --level-accent: var(--gold);
     color-scheme: dark;
   }
   *{box-sizing:border-box;}
   html,body{ height:100%; }
   body{
-    background: radial-gradient(ellipse at 50% -10%, #2c3524 0%, var(--ink) 55%, #12160e 100%);
+    background: radial-gradient(ellipse at 50% -10%, #2a1210 0%, var(--ink) 55%, #050403 100%);
     color: var(--parchment);
-    font-family:'Nunito', system-ui, sans-serif;
+    font-family:'Inter', system-ui, sans-serif;
     height:100vh; height:100dvh;
     margin:0;
     display:flex;
@@ -31,12 +32,20 @@
     overflow:hidden;
     padding: 14px 14px 12px;
   }
-  h1,h2,h3{margin:0; text-wrap:balance;}
+  h1,h2,h3{margin:0; text-wrap:balance; font-family:'Cinzel', 'Inter', system-ui, sans-serif;}
   button{font-family:inherit;}
 
-  .pixel-font{ font-family:'Press Start 2P', 'Nunito', monospace; letter-spacing:0.5px; }
+  .pixel-font{ font-family:'Press Start 2P', monospace; letter-spacing:0.5px; }
 
-  .app{ width:100%; max-width:980px; height:100%; display:flex; flex-direction:column; gap:12px; min-height:0; }
+  .app{ width:100%; max-width:980px; height:100%; display:flex; flex-direction:column; gap:12px; min-height:0; position:relative; }
+
+  /* a faint dark vignette over everything -- keeps the edges of the screen
+     feeling like they fall away into shadow, without touching contrast in
+     the middle where all the actual UI lives */
+  body::after{
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:90;
+    background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,0.45) 100%);
+  }
 
   /* scrollbars, themed to match the rest of the chrome */
   .shop-list, .modal-body{ scrollbar-width:thin; scrollbar-color: var(--stone) transparent; }
@@ -50,7 +59,7 @@
     flex:none;
     display:flex; align-items:center; justify-content:space-between; gap:16px;
     background: linear-gradient(180deg, var(--panel-2), var(--panel));
-    border:2px solid var(--stone); border-radius:14px; padding:12px 18px;
+    border:2px solid var(--stone); border-radius:7px; padding:12px 18px;
     box-shadow: var(--shadow);
   }
   .brand{ display:flex; align-items:center; gap:10px; }
@@ -89,18 +98,18 @@
   .save-dot.show{ opacity:1; }
 
   .account-btn{
-    flex:none; background:rgba(232,196,104,0.1); border:1px solid var(--gold); color:var(--gold);
+    flex:none; background:rgba(201,162,74,0.1); border:1px solid var(--gold); color:var(--gold);
     font-family:inherit; font-size:11px; font-weight:800; padding:6px 12px; border-radius:999px; cursor:pointer;
     white-space:nowrap;
   }
-  .account-btn:hover{ background:rgba(232,196,104,0.2); }
+  .account-btn:hover{ background:rgba(201,162,74,0.2); }
 
   .account-tabs{ display:flex; gap:6px; margin-bottom:10px; }
   .account-tab{
     flex:1; background:rgba(0,0,0,0.2); border:1px solid var(--line); color:var(--parchment-dim);
     font-family:inherit; font-size:11px; font-weight:800; padding:8px; border-radius:8px; cursor:pointer;
   }
-  .account-tab.active{ background:rgba(232,196,104,0.15); border-color:var(--gold); color:var(--gold); }
+  .account-tab.active{ background:rgba(201,162,74,0.15); border-color:var(--gold); color:var(--gold); }
   .account-form{ display:flex; flex-direction:column; gap:8px; }
   .account-input{
     background:rgba(0,0,0,0.3); border:1px solid var(--line); border-radius:8px; color:var(--parchment);
@@ -117,7 +126,7 @@
   .leaderboard-empty{ font-size:11px; color:var(--parchment-dim); text-align:center; padding:10px; }
 
   /* ---- Level strip ---- */
-  .level-strip{ flex:none; display:flex; flex-direction:column; gap:6px; background: var(--panel); border:2px solid var(--stone); border-radius:14px; padding:10px 16px; }
+  .level-strip{ flex:none; display:flex; flex-direction:column; gap:6px; background: var(--panel); border:2px solid var(--stone); border-radius:7px; padding:10px 16px; }
   .level-row{ display:flex; align-items:center; gap:12px; }
   .level-strip .name{ font-size:13px; font-weight:800; color:var(--parchment); white-space:nowrap; }
   .level-strip .name em{ font-style:normal; color: var(--level-accent); transition: color .5s ease; }
@@ -130,7 +139,7 @@
   .main{ flex:1; min-height:0; display:grid; grid-template-columns: 1.3fr 1fr; gap:14px; }
 
   /* ---- Arena ---- */
-  .arena{ position:relative; border:2px solid var(--stone); border-radius:16px; overflow:hidden; height:100%; min-height:0; display:flex; flex-direction:column; box-shadow: var(--shadow); }
+  .arena{ position:relative; border:2px solid var(--stone); border-radius:8px; overflow:hidden; height:100%; min-height:0; display:flex; flex-direction:column; box-shadow: var(--shadow); }
   .arena-sky{ position:absolute; inset:0; transition: background 0.8s ease; }
   .arena-decor{ position:absolute; inset:0; pointer-events:none; }
   .decor-item{ position:absolute; image-rendering:pixelated; opacity:0.85; }
@@ -156,16 +165,16 @@
   .pip-btn[hidden]{ display:none; }
   .pip-placeholder{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:var(--parchment-dim); font-size:12px; text-align:center; padding:20px; }
   .pip-placeholder button{
-    background: linear-gradient(180deg, #5da062, var(--moss-dim)); color:#0e1a0e; border:none; border-radius:8px;
+    background: linear-gradient(180deg, #6b8f5a, var(--moss-dim)); color:#0e1a0e; border:none; border-radius:8px;
     padding:8px 14px; font-weight:800; font-size:12px; cursor:pointer; box-shadow:0 3px 0 #223c22; font-family:inherit;
   }
   /* the popped-out window is a blank document -- keep it dark and centered */
   .pip-doc-root{ background: var(--ink); margin:0; }
 
   .stage{ position:relative; width:190px; height:190px; display:flex; align-items:center; justify-content:center; cursor:pointer; -webkit-tap-highlight-color: transparent; user-select:none; }
-  .stage svg{ width:100%; height:100%; image-rendering:pixelated; filter:drop-shadow(0 10px 14px rgba(0,0,0,0.45)); transition: filter .25s ease; }
-  .stage.boss svg{ filter:drop-shadow(0 12px 22px rgba(232,196,104,0.35)) drop-shadow(0 10px 14px rgba(0,0,0,0.5)); }
-  .stage.boss.shielded svg{ filter:drop-shadow(0 0 12px rgba(123,199,240,0.75)) drop-shadow(0 10px 14px rgba(0,0,0,0.5)); }
+  .stage svg{ width:100%; height:100%; image-rendering:pixelated; filter:drop-shadow(0 10px 14px rgba(0,0,0,0.6)); transition: filter .25s ease; }
+  .stage.boss svg{ filter:drop-shadow(0 12px 22px rgba(163,49,46,0.45)) drop-shadow(0 10px 14px rgba(0,0,0,0.65)); animation: bossFlicker 3.4s ease-in-out infinite; }
+  .stage.boss.shielded svg{ filter:drop-shadow(0 0 12px rgba(111,160,191,0.75)) drop-shadow(0 10px 14px rgba(0,0,0,0.6)); animation:none; }
   .stage .sprite-wrap{ animation: bob 2.6s ease-in-out infinite; }
   /* click feedback targets whichever sprite is actually being hit -- the
      boss itself, or the add standing guard in front of it -- not both at
@@ -180,9 +189,9 @@
   .sprite-glow{ position:absolute; width:160px; height:160px; border-radius:50%; background: radial-gradient(circle, rgba(255,255,255,0.22), transparent 72%); pointer-events:none; }
   .stage.boss .sprite-glow{ width:200px; height:200px; }
 
-  .aura{ position:absolute; width:220px; height:220px; border-radius:50%; background: radial-gradient(circle, rgba(232,196,104,0.25), transparent 70%); display:none; }
+  .aura{ position:absolute; width:220px; height:220px; border-radius:50%; background: radial-gradient(circle, rgba(163,49,46,0.28), transparent 70%); display:none; }
   .stage.boss .aura{ display:block; animation: pulse 2.2s ease-in-out infinite; }
-  .stage.boss.shielded .aura{ background: radial-gradient(circle, rgba(123,199,240,0.4), transparent 70%); }
+  .stage.boss.shielded .aura{ background: radial-gradient(circle, rgba(111,160,191,0.4), transparent 70%); }
 
   /* Purely cosmetic: a little escort that only ever shows up around Matti,
      so his fights read as visually distinct even with no gameplay effect. */
@@ -217,7 +226,7 @@
   .math-gate{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:8;
     display:none; flex-direction:column; align-items:center; gap:8px;
-    background:rgba(15,12,8,0.92); border:1px solid var(--gold); border-radius:12px;
+    background:rgba(15,12,8,0.92); border:1px solid var(--gold); border-radius:8px;
     padding:14px 18px; box-shadow:0 10px 24px rgba(0,0,0,0.55); width:180px;
   }
   .math-gate.show{ display:flex; }
@@ -229,7 +238,7 @@
     padding:6px 8px;
   }
   .math-gate-submit{
-    width:100%; background: linear-gradient(180deg, #f0d488, var(--gold)); color:#3a2c0d; border:none;
+    width:100%; background: linear-gradient(180deg, #d9b25a, var(--gold)); color:#3a2c0d; border:none;
     border-radius:8px; padding:7px; font-weight:900; font-size:11px; cursor:pointer; box-shadow:0 3px 0 #8a6a1f;
     font-family:inherit;
   }
@@ -249,7 +258,7 @@
   .floaters{ position:absolute; inset:0; pointer-events:none; z-index:5; overflow:visible; }
   .floater{ position:absolute; font-weight:800; font-size:15px; color:#fff; text-shadow:0 2px 3px rgba(0,0,0,0.6); animation: floatUp 0.9s ease-out forwards; white-space:nowrap; }
   .floater.crit{ color:var(--gold); font-size:19px; }
-  .floater.gold{ color:#9be27a; }
+  .floater.gold{ color:#8fae6a; }
   .floater.blocked{ color:var(--shield); }
 
   .flash{ position:absolute; inset:0; background:var(--gold); opacity:0; pointer-events:none; z-index:9; }
@@ -261,7 +270,7 @@
     padding:5px 14px; letter-spacing:0.2px;
   }
   .challenge-btn{
-    background: linear-gradient(180deg, #f0d488, var(--gold)); color:#3a2c0d; border:none; border-radius:8px;
+    background: linear-gradient(180deg, #d9b25a, var(--gold)); color:#3a2c0d; border:none; border-radius:8px;
     padding:10px 18px; font-weight:900; font-size:12px; cursor:pointer; box-shadow:0 3px 0 #8a6a1f;
     animation: pulse 2.2s ease-in-out infinite;
   }
@@ -286,7 +295,7 @@
      share whatever room is left -- and the upgrade lists inside them are
      the only things that scroll. That's what keeps the whole app pinned
      to one screen with no page-level scrollbar, on desktop or mobile. */
-  .panel{ background: linear-gradient(180deg, var(--panel-2), var(--panel)); border:2px solid var(--stone); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:10px; box-shadow: var(--shadow); height:100%; min-height:0; overflow:hidden; }
+  .panel{ background: linear-gradient(180deg, var(--panel-2), var(--panel)); border:2px solid var(--stone); border-radius:8px; padding:16px; display:flex; flex-direction:column; gap:10px; box-shadow: var(--shadow); height:100%; min-height:0; overflow:hidden; }
   .panel h2{ font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--gold); display:flex; align-items:center; justify-content:space-between; gap:8px; flex:none; }
   .village-balance{ display:flex; align-items:center; gap:5px; text-transform:none; letter-spacing:0; font-size:11px; color:var(--parchment-dim); font-weight:700; }
   .village-balance .icon{ width:14px; height:14px; }
@@ -313,7 +322,7 @@
   .upgrade .u-lvl{ font-size:9.5px; color:var(--moss); grid-column:1; font-weight:700; }
   .buy{
     grid-column:2; grid-row:1 / span 3;
-    background: linear-gradient(180deg, #5da062, var(--moss-dim));
+    background: linear-gradient(180deg, #6b8f5a, var(--moss-dim));
     color:#0e1a0e; border:none; border-radius:8px; padding:9px 12px;
     font-weight:900; font-size:12px; cursor:pointer;
     box-shadow:0 3px 0 #223c22;
@@ -327,21 +336,21 @@
   .buy-max{ font-size:9.5px; padding:6px 10px; background:linear-gradient(180deg,#c99a3a,#8a6a1a); box-shadow:0 3px 0 #4a3a0a; }
   .buy-max:active{ box-shadow:0 1px 0 #4a3a0a; }
 
-  .prestige-box{ flex:none; border:1px solid var(--gold); border-radius:8px; padding:8px 10px; background:rgba(232,196,104,0.08); display:flex; flex-direction:column; gap:5px; }
+  .prestige-box{ flex:none; border:1px solid var(--gold); border-radius:8px; padding:8px 10px; background:rgba(201,162,74,0.08); display:flex; flex-direction:column; gap:5px; }
   .prestige-box h2{ font-size:10px; }
   .prestige-box p{ font-size:10px; color:var(--parchment-dim); margin:0; line-height:1.3; }
-  .ascend-btn{ background: linear-gradient(180deg, #f0d488, var(--gold)); color:#3a2c0d; border:none; border-radius:7px; padding:7px; font-weight:900; font-size:11px; cursor:pointer; box-shadow:0 3px 0 #8a6a1f; }
+  .ascend-btn{ background: linear-gradient(180deg, #d9b25a, var(--gold)); color:#3a2c0d; border:none; border-radius:7px; padding:7px; font-weight:900; font-size:11px; cursor:pointer; box-shadow:0 3px 0 #8a6a1f; }
   .ascend-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #8a6a1f; }
   .ascend-btn:disabled{ filter:grayscale(0.7) brightness(0.7); cursor:not-allowed; }
 
   /* ---- Village: opened on demand, not part of the main screen ---- */
   .village-open-btn{
     flex:none; display:flex; align-items:center; gap:10px; width:100%; text-align:left;
-    background: rgba(232,196,104,0.08); border:1px solid var(--gold); border-radius:10px;
+    background: rgba(201,162,74,0.08); border:1px solid var(--gold); border-radius:10px;
     padding:10px 12px; cursor:pointer; color:var(--parchment); font-family:inherit;
     transition: background .15s ease, transform .08s ease;
   }
-  .village-open-btn:hover{ background: rgba(232,196,104,0.16); }
+  .village-open-btn:hover{ background: rgba(201,162,74,0.16); }
   .village-open-btn:active{ transform:translateY(1px); }
   .village-open-btn .u-icon{ width:22px; height:22px; }
   .village-open-text{ flex:1; display:flex; flex-direction:column; font-weight:800; font-size:12px; }
@@ -352,7 +361,7 @@
   .modal-overlay{ position:fixed; inset:0; background:rgba(10,8,5,0.72); display:none; align-items:center; justify-content:center; z-index:70; padding:20px; }
   .modal-overlay.show{ display:flex; }
   .modal-card{
-    background: linear-gradient(180deg, var(--panel-2), var(--panel)); border:2px solid var(--stone); border-radius:16px;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel)); border:2px solid var(--stone); border-radius:8px;
     box-shadow:0 20px 44px rgba(0,0,0,0.5); width:100%; max-width:480px; max-height:min(640px, 88vh);
     display:flex; flex-direction:column; overflow:hidden;
   }
@@ -377,7 +386,7 @@
 
   /* ---- Village scene: a little town, not an icon strip ---- */
   .village-scene{
-    flex:none; position:relative; height:240px; border-radius:14px; overflow:hidden; border:1px solid var(--stone);
+    flex:none; position:relative; height:240px; border-radius:7px; overflow:hidden; border:1px solid var(--stone);
     background: linear-gradient(180deg, #2a3a52 0%, #46523a 46%, #2f3a24 46%, #17200f 100%);
   }
   .village-decor-item{ position:absolute; image-rendering:pixelated; opacity:0.85; pointer-events:none; }
@@ -414,7 +423,7 @@
   .gamble-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #33245a; }
   .gamble-btn:disabled{ filter:grayscale(0.6) brightness(0.6); cursor:not-allowed; box-shadow:0 3px 0 #1a1a1a; }
   .gamble-result{ font-size:11px; font-weight:700; min-height:14px; text-align:center; }
-  .gamble-result.win{ color:#9be27a; }
+  .gamble-result.win{ color:#8fae6a; }
   .gamble-result.lose{ color:var(--danger); }
 
   .roulette-wrap{ position:relative; width:120px; height:120px; margin:2px auto 4px; }
@@ -448,6 +457,12 @@
   @keyframes dieOut{ to{ transform:scale(0.3) translateY(20px); opacity:0; } }
   @keyframes floatUp{ 0%{ opacity:1; transform:translateY(0) scale(1);} 100%{ opacity:0; transform:translateY(-58px) scale(1.15);} }
   @keyframes pulse{ 0%,100%{ opacity:0.55; transform:scale(0.94);} 50%{ opacity:0.95; transform:scale(1.05);} }
+  @keyframes bossFlicker{
+    0%,100%{ filter:drop-shadow(0 12px 22px rgba(163,49,46,0.45)) drop-shadow(0 10px 14px rgba(0,0,0,0.65)) brightness(1); }
+    92%{ filter:drop-shadow(0 12px 22px rgba(163,49,46,0.45)) drop-shadow(0 10px 14px rgba(0,0,0,0.65)) brightness(1); }
+    94%{ filter:drop-shadow(0 12px 30px rgba(163,49,46,0.7)) drop-shadow(0 10px 14px rgba(0,0,0,0.65)) brightness(0.85); }
+    96%{ filter:drop-shadow(0 12px 22px rgba(163,49,46,0.45)) drop-shadow(0 10px 14px rgba(0,0,0,0.65)) brightness(1.05); }
+  }
   @keyframes bossFlash{ 0%{opacity:0;} 15%{opacity:0.55;} 100%{opacity:0;} }
   @keyframes bannerDrop{ from{ transform:translate(-50%,-14px); opacity:0;} to{ transform:translate(-50%,0); opacity:1;} }
   @keyframes toastIn{ from{ opacity:0; transform:translateY(-8px);} to{ opacity:1; transform:translateY(0);} }
@@ -503,6 +518,7 @@
 
   @media (prefers-reduced-motion: reduce){
     .stage .sprite-wrap, .stage.boss .aura, .add-sprite{ animation:none !important; }
+    .stage.boss svg{ animation:none !important; }
     .sprite-wrap.hit, .add-sprite.hit, .stage.dying .sprite-wrap{ animation:none !important; }
     .floater{ animation:none !important; opacity:0; }
     .coin{ animation:none !important; display:none !important; }
@@ -535,7 +551,7 @@
     .mobile-panel-btn{
       display:flex; align-items:center; justify-content:center;
       position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
-      background: linear-gradient(180deg, #f0d488, var(--gold)); color:#3a2c0d; border:none;
+      background: linear-gradient(180deg, #d9b25a, var(--gold)); color:#3a2c0d; border:none;
       padding:9px 18px; border-radius:999px; font-weight:900; font-size:11px; cursor:pointer;
       box-shadow:0 3px 0 #8a6a1f; z-index:5; font-family:inherit; white-space:nowrap;
     }
