@@ -42,22 +42,22 @@ Legend: [x] = new traced sprite, [ ] = still old art
 - [x] fungalhorror
 - [x] blindstalker
 - [x] cavetroll
-- [ ] voidmoth
+- [x] voidmoth
 
 ## Frostpeak Foothills (boss: Frost Warden)
 - [x] frostWarden (boss)
-- [ ] iceimp
-- [ ] frosthare
-- [ ] snowwolf
-- [ ] rimespider
-- [ ] glaciercrab
-- [ ] frostwisp
+- [x] iceimp
+- [x] frosthare
+- [x] snowwolf
+- [x] rimespider
+- [x] glaciercrab
+- [x] frostwisp
 
 ## Sundered Ruins (boss: Forgotten King)
 - [x] forgottenKing (boss)
-- [ ] rustbot
-- [ ] ruinwisp
-- [ ] animatedarmor
+- [x] rustbot
+- [x] ruinwisp
+- [x] animatedarmor
 - [ ] tombcrawler
 - [ ] archivist
 - [ ] gargoyle
@@ -118,7 +118,7 @@ Legend: [x] = new traced sprite, [ ] = still old art
 
 ---
 
-**Totals: 34 traced / ~88 total.**
+**Totals: 44 traced / ~88 total.**
 
 ## Flagged for redo (not just "not yet traced" -- explicitly disliked)
 - [ ] medusa -- user unhappy with current static trace, needs a new pass
