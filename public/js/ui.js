@@ -282,5 +282,13 @@
     } else if(offline && offline.kills>0){
       toast('Welcome back! Away '+formatDuration(offline.seconds)+'. Felled '+offline.kills+' foes, gathered '+fmt(offline.gold)+'g.');
     }
+    // not for a brand-new game -- there's nothing to have a "streak" of yet
+    if(!isNewGame){
+      var streak = checkDailyStreak();
+      if(streak){
+        toast('Day '+streak+' streak! +'+streak+' Gambling Token'+(streak===1?'':'s')+'.', 4500);
+        renderAll();
+      }
+    }
     save();
   });

@@ -302,12 +302,16 @@
     var defeated = state.defeated;
     var achievements = state.achievements;
     var dragonKills = state.dragonKills;
+    var loginStreak = state.loginStreak;
+    var lastLoginDate = state.lastLoginDate;
     state = freshState();
     state.blessings = blessings;
     state.villageLevels = village; // the Village is permanent -- it survives the reset
     state.defeated = defeated; // so does what you've already discovered
     state.achievements = achievements; // and everything you've earned
     state.dragonKills = dragonKills;
+    state.loginStreak = loginStreak; // and so does your daily streak
+    state.lastLoginDate = lastLoginDate;
     lastLevelRendered = -1;
     toast('Ascended! +'+gain+' Blessings. Spend them in the Village for permanent power.');
     unlockAchievement('ascended');

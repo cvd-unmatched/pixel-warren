@@ -72,8 +72,30 @@
       villageLevels: defaultLevels(VILLAGE),
       defeated:{},
       achievements:{},
-      enemy:null
+      enemy:null,
+      loginStreak:0, lastLoginDate:null
     };
+  }
+  // Local calendar day as YYYY-MM-DD, so the streak turns over at midnight
+  // where the player actually is, not at UTC midnight.
+  function todayKey(){
+    var d = new Date();
+    return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  }
+  // Rewards Gambling Tokens instead of gold specifically to dodge the
+  // realm-to-realm gold scaling problem -- a fixed gold number is either
+  // trivial in the late game or overwhelming in the early game, but a
+  // token is worth the same regardless of how far along you are.
+  var DAILY_STREAK_CAP = 7;
+  function checkDailyStreak(){
+    var today = todayKey();
+    if(state.lastLoginDate === today) return null;
+    var y = new Date(); y.setDate(y.getDate()-1);
+    var yesterday = y.getFullYear()+'-'+(y.getMonth()+1)+'-'+y.getDate();
+    state.loginStreak = (state.lastLoginDate === yesterday) ? Math.min(state.loginStreak+1, DAILY_STREAK_CAP) : 1;
+    state.lastLoginDate = today;
+    state.gambleTokens += state.loginStreak;
+    return state.loginStreak;
   }
   var state = freshState();
   var loadedSavedAt = null;
@@ -95,6 +117,8 @@
     state.defeated = d.defeated || state.defeated;
     state.achievements = d.achievements || state.achievements;
     state.enemy = d.enemy || null;
+    state.loginStreak = d.loginStreak||0;
+    state.lastLoginDate = d.lastLoginDate||null;
     // recompute from dragonKills too, not just the stored flag -- if a
     // balance change lowers DRAGON_KILLS_TO_UNLOCK_ASCEND after a save was
     // already written, a save that now already clears the new bar must not
@@ -108,6 +132,7 @@
       levelIndex:state.levelIndex, killsInLevel:state.killsInLevel, totalKills:state.totalKills, bossReady:state.bossReady,
       dragonKills:state.dragonKills, gambleTokens:state.gambleTokens,
       upgradeLevels:state.upgradeLevels, villageLevels:state.villageLevels, defeated:state.defeated, achievements:state.achievements, enemy:state.enemy,
+      loginStreak:state.loginStreak, lastLoginDate:state.lastLoginDate,
       finalBeaten:finalBeaten, savedAt:Date.now()
     };
   }
