@@ -28,20 +28,20 @@ Legend: [x] = new traced sprite, [ ] = still old art
 - [x] crystalGolem (boss)
 - [x] bat
 - [x] golem
-- [ ] caverat
-- [ ] gloomshroom
-- [ ] stalamite
-- [ ] tunnelworm
-- [ ] echobat
-- [ ] quartzcrab
+- [x] caverat
+- [x] gloomshroom
+- [x] stalamite
+- [x] tunnelworm
+- [x] echobat
+- [x] quartzcrab
 
 ## Underdark Depths (boss: Abyssal Warden)
 - [x] abyssalWarden (boss)
 - [x] deepspider
-- [ ] gloomwraith
-- [ ] fungalhorror
-- [ ] blindstalker
-- [ ] cavetroll
+- [x] gloomwraith
+- [x] fungalhorror
+- [x] blindstalker
+- [x] cavetroll
 - [ ] voidmoth
 
 ## Frostpeak Foothills (boss: Frost Warden)
@@ -90,9 +90,9 @@ Legend: [x] = new traced sprite, [ ] = still old art
 - [ ] skyjelly
 
 ## Mythic Depths (boss: Hydra)
-- [x] hydra (boss)
-- [x] hydraHead
-- [x] medusa
+- [ ] hydra (boss)
+- [ ] hydraHead
+- [ ] medusa
 - [ ] cerberus
 - [ ] scylla
 - [ ] minotaur
@@ -118,8 +118,8 @@ Legend: [x] = new traced sprite, [ ] = still old art
 
 ---
 
-**Totals: 24 traced / ~88 total.**
+**Totals: 34 traced / ~88 total.**
 
 ## Flagged for redo (not just "not yet traced" -- explicitly disliked)
 - [ ] medusa -- user unhappy with current static trace, needs a new pass
-- [ ] hydra -- main body sprite needs a redo (current one reads badly); escalating-heads power also needs a bug check
+- [ ] hydra -- main body sprite needs a redo (current one reads badly); escalating-heads power itself confirmed working correctly (was a /monsters simulator bug, now fixed)
