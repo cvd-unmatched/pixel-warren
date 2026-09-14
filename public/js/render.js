@@ -21,6 +21,7 @@
     levelProgress: document.getElementById('levelProgress'),
     levelCount: document.getElementById('levelCount'),
     levelLore: document.getElementById('levelLore'),
+    dragonDistance: document.getElementById('dragonDistance'),
     arena: document.getElementById('arena'),
     arenaSky: document.getElementById('arenaSky'),
     arenaDecor: document.getElementById('arenaDecor'),
@@ -136,6 +137,19 @@
       var pct = Math.min(100, (state.killsInLevel % kpb) / kpb * 100);
       el.levelProgress.style.width = pct+'%';
       el.levelCount.textContent = (state.killsInLevel % kpb) + ' / ' + kpb;
+    }
+    // A concrete "how far off is the dragon" answer, visible from realm 1 --
+    // before this it only showed up once you'd already reached Dragon's
+    // Peak at least once, which left everyone earlier with no visibility
+    // into how much further there was to go.
+    var realmsToGo = LEVELS.length - 1 - state.levelIndex;
+    if(realmsToGo > 0){
+      el.dragonDistance.textContent = realmsToGo + ' realm' + (realmsToGo===1?'':'s') + ' until Dragon\'s Peak.';
+    } else if(!finalBeaten){
+      var killsLeft = DRAGON_KILLS_TO_UNLOCK_ASCEND - state.dragonKills;
+      el.dragonDistance.textContent = 'At Dragon\'s Peak -- defeat the Ancient Dragon '+killsLeft+' more time'+(killsLeft===1?'':'s')+' to unlock Ascend.';
+    } else {
+      el.dragonDistance.textContent = '';
     }
   }
 

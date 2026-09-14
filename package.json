@@ -6,12 +6,16 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build:artifact": "node scripts/build-artifact.js"
+    "build:artifact": "node scripts/build-artifact.js",
+    "test": "node --test --test-force-exit \"test/**/*.test.js\""
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
     "mariadb": "^3.5.4"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3"
   }
 }

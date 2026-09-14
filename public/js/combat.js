@@ -182,7 +182,10 @@
   // register, so an external clicker can't turn "click damage" into
   // unlimited damage-per-second.
   var lastClickAt = 0;
-  var MIN_CLICK_INTERVAL_MS = 70;
+  // Loose enough that a genuinely fast human clicker (even rapid-fire
+  // "jitter clicking") never notices it -- a real script-driven autoclicker
+  // still runs well past this, so the anti-cheat intent holds either way.
+  var MIN_CLICK_INTERVAL_MS = 40;
   function onStageClick(ev){
     if(ev && ev.isTrusted === false) return;
     var now = performance.now();
