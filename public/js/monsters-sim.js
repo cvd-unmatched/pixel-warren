@@ -131,6 +131,16 @@
     if(a.type === 'mathGate') return 'Blocks all damage until a math question is answered every ' + (a.every/1000) + 's.';
     if(a.type === 'hydraHeads') return 'Spawns escalating waves of heads (1,2,4...' + a.maxHeads + ' max) -- body is only vulnerable between waves.';
     if(a.type === 'webPull') return 'Fires a web every ' + (a.every/1000) + 's that tugs the whole arena.';
+    if(a.type === 'enrage') return 'Enrages every ' + (a.every/1000) + 's -- no crits land on it for ' + (a.duration/1000) + 's.';
+    if(a.type === 'drain') return 'Drains every ' + (a.every/1000) + 's -- heals ' + Math.round((a.drainFrac!=null?a.drainFrac:0.4)*100) + '% of damage taken back for ' + (a.duration/1000) + 's.';
+    if(a.type === 'camouflage') return 'Fades from sight every ' + (a.every/1000) + 's -- clicks miss entirely for ' + (a.duration/1000) + 's.';
+    if(a.type === 'curse') return 'Curses you every ' + (a.every/1000) + 's -- blocks damage until ' + (a.clicksNeeded||5) + ' plain clicks break it.';
+    if(a.type === 'frostbite') return 'Chills every ' + (a.every/1000) + 's -- click damage reduced by a flat amount for ' + (a.duration/1000) + 's.';
+    if(a.type === 'secondWind') return 'One-time: heals a big burst the first time it drops below ' + Math.round((a.threshold!=null?a.threshold:0.2)*100) + '% HP.';
+    if(a.type === 'taunt') return 'Taunts every ' + (a.every/1000) + 's -- ' + Math.round((a.missChance!=null?a.missChance:0.4)*100) + '% of clicks miss for ' + (a.duration/1000) + 's.';
+    if(a.type === 'overcharge') return 'Channels every ' + (a.every/1000) + 's -- heals a burst if not clicked within ' + (a.channelDuration/1000) + 's.';
+    if(a.type === 'weakpoint') return 'Exposes a weak point every ' + (a.every/1000) + 's -- clicks deal ' + (a.bonusMult||2) + 'x damage for ' + (a.duration/1000) + 's.';
+    if(a.type === 'gamble') return 'Invites a gamble every ' + (a.every/1000) + 's -- each click for ' + (a.duration/1000) + 's is a coinflip for double or half damage.';
     return a.type;
   }
 
