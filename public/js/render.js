@@ -263,29 +263,47 @@
   }
 
   function renderUpgradeRow(u){
-    var lvl = state.upgradeLevels[u.id]||0;
-    var cost = upgradeCost(u);
-    // A capped role (crit chance, luck) stops being worth buying once
-    // its ceiling is hit -- more levels would be gold spent for nothing.
     var maxed = isRoleMaxed(u.role);
-    var bulk = maxed ? {count:0} : maxAffordableUpgrade(u);
     var row = document.createElement('div');
     row.className = 'upgrade';
+    row.dataset.uid = u.id;
+    row.dataset.maxed = maxed ? '1' : '0';
     row.innerHTML =
       '<div class="u-name">'+u.name+'</div>'+
       '<div class="u-desc">'+u.desc+'</div>'+
-      '<div class="u-lvl">Lv.'+lvl+' &middot; now '+u.format(u.effect(lvl))+'</div>'+
+      '<div class="u-lvl"></div>'+
       (maxed
         ? '<div class="u-buy-row"><button class="buy" disabled>Maxed</button></div>'
         : '<div class="u-buy-row">'+
-            '<button class="buy" '+(state.gold<cost?'disabled':'')+'>'+fmt(cost)+'g</button>'+
-            '<button class="buy buy-max" '+(bulk.count<1?'disabled':'')+'>Max x'+bulk.count+' ('+fmt(bulk.cost)+'g)</button>'+
+            '<button class="buy"></button>'+
+            '<button class="buy buy-max"></button>'+
           '</div>');
     if(!maxed){
       row.querySelector('.buy').addEventListener('click', function(){ buyUpgrade(u); });
       row.querySelector('.buy-max').addEventListener('click', function(){ buyMaxUpgrade(u); });
     }
+    updateUpgradeRow(row, u);
     return row;
+  }
+
+  // Refreshes an existing row's numbers/disabled-state in place, without
+  // touching its DOM nodes -- renderShop() runs very often (every kill,
+  // every auto-DPS tick that lands a kill), and rebuilding buttons from
+  // scratch each time meant a click landing between a rebuild's mousedown
+  // and mouseup found its target already replaced, so the click silently
+  // never fired. Reported as "pressing Max sometimes just does nothing."
+  function updateUpgradeRow(row, u){
+    var lvl = state.upgradeLevels[u.id]||0;
+    row.querySelector('.u-lvl').innerHTML = 'Lv.'+lvl+' &middot; now '+u.format(u.effect(lvl));
+    if(row.dataset.maxed === '1') return;
+    var cost = upgradeCost(u);
+    var bulk = maxAffordableUpgrade(u);
+    var buyBtn = row.querySelector('.buy:not(.buy-max)');
+    var maxBtn = row.querySelector('.buy-max');
+    buyBtn.disabled = state.gold < cost;
+    buyBtn.textContent = fmt(cost)+'g';
+    maxBtn.disabled = bulk.count < 1;
+    maxBtn.textContent = 'Max x'+bulk.count+' ('+fmt(bulk.cost)+'g)';
   }
 
   // Grouped by category (Click Damage / Auto Damage / Critical Hits /
@@ -293,8 +311,22 @@
   // one long undifferentiated column -- a category header only appears
   // once something in it is actually unlocked.
   function renderShop(){
-    el.shopList.innerHTML = '';
     var unlocked = UPGRADES.filter(isUnlocked);
+    // The category/row layout only actually changes when an upgrade newly
+    // unlocks or a capped role flips to maxed -- both rare. Detect that
+    // and only pay for a full rebuild then; otherwise just refresh the
+    // numbers on the rows that are already there (see updateUpgradeRow).
+    var expectedIds = unlocked.map(function(u){ return u.id+':'+(isRoleMaxed(u.role)?1:0); });
+    var currentIds = Array.from(el.shopList.querySelectorAll('.upgrade')).map(function(r){ return r.dataset.uid+':'+r.dataset.maxed; });
+    var structureChanged = expectedIds.length !== currentIds.length || expectedIds.some(function(id,i){ return id !== currentIds[i]; });
+    if(!structureChanged){
+      unlocked.forEach(function(u){
+        var row = el.shopList.querySelector('.upgrade[data-uid="'+u.id+'"]');
+        if(row) updateUpgradeRow(row, u);
+      });
+      return;
+    }
+    el.shopList.innerHTML = '';
     UPGRADE_CATEGORIES.forEach(function(cat){
       var items = unlocked.filter(function(u){ return u.category === cat.id; });
       if(!items.length) return;
@@ -306,29 +338,48 @@
     });
   }
 
+  // The Village's building list is fixed (nothing unlocks/relocks), so
+  // unlike the shop, rows only ever need to be created once, then just
+  // refreshed in place -- same reasoning as updateUpgradeRow above.
+  function updateVillageRow(row, b){
+    var lvl = state.villageLevels[b.id]||0;
+    var cost = villageCost(b);
+    var bulk = maxAffordableVillage(b);
+    row.querySelector('.u-lvl').innerHTML = 'Lv.'+lvl+' &middot; now '+b.format(b.effect(lvl));
+    var buyBtn = row.querySelector('.buy:not(.buy-max)');
+    var maxBtn = row.querySelector('.buy-max');
+    buyBtn.disabled = state.blessings < cost;
+    buyBtn.querySelector('.buy-cost').textContent = cost;
+    maxBtn.disabled = bulk.count < 1;
+    maxBtn.textContent = 'Max x'+bulk.count+' ('+bulk.cost+')';
+  }
+
   function renderVillage(){
     el.villageBlessCount.textContent = state.blessings;
     el.villageModalBlessCount.textContent = state.blessings;
     renderVillageScene();
-    el.villageList.innerHTML = '';
-    VILLAGE.forEach(function(b){
-      var lvl = state.villageLevels[b.id]||0;
-      var cost = villageCost(b);
-      var bulk = maxAffordableVillage(b);
-      var row = document.createElement('div');
-      row.className = 'upgrade';
-      row.innerHTML =
-        '<div class="u-name"><span class="u-icon">'+VILLAGE_ICON_SVG[b.icon]+'</span>'+b.name+'</div>'+
-        '<div class="u-desc">'+b.desc+'</div>'+
-        '<div class="u-lvl">Lv.'+lvl+' &middot; now '+b.format(b.effect(lvl))+'</div>'+
-        '<div class="u-buy-row">'+
-          '<button class="buy" '+(state.blessings<cost?'disabled':'')+'><span class="buy-icon">'+BLESS_ICON_SVG+'</span>'+cost+'</button>'+
-          '<button class="buy buy-max" '+(bulk.count<1?'disabled':'')+'>Max x'+bulk.count+' ('+bulk.cost+')</button>'+
-        '</div>';
-      row.querySelector('.buy:not(.buy-max)').addEventListener('click', function(){ buyVillageBuilding(b); });
-      row.querySelector('.buy-max').addEventListener('click', function(){ buyMaxVillageBuilding(b); });
-      el.villageList.appendChild(row);
-    });
+    if(el.villageList.children.length !== VILLAGE.length){
+      el.villageList.innerHTML = '';
+      VILLAGE.forEach(function(b){
+        var row = document.createElement('div');
+        row.className = 'upgrade';
+        row.innerHTML =
+          '<div class="u-name"><span class="u-icon">'+VILLAGE_ICON_SVG[b.icon]+'</span>'+b.name+'</div>'+
+          '<div class="u-desc">'+b.desc+'</div>'+
+          '<div class="u-lvl"></div>'+
+          '<div class="u-buy-row">'+
+            '<button class="buy"><span class="buy-icon">'+BLESS_ICON_SVG+'</span><span class="buy-cost"></span></button>'+
+            '<button class="buy buy-max"></button>'+
+          '</div>';
+        row.querySelector('.buy:not(.buy-max)').addEventListener('click', function(){ buyVillageBuilding(b); });
+        row.querySelector('.buy-max').addEventListener('click', function(){ buyMaxVillageBuilding(b); });
+        el.villageList.appendChild(row);
+        updateVillageRow(row, b);
+      });
+    } else {
+      var rows = el.villageList.children;
+      VILLAGE.forEach(function(b, i){ updateVillageRow(rows[i], b); });
+    }
     var open = casinoBuilt();
     el.gambleLocked.hidden = open;
     el.gambleContent.hidden = !open;

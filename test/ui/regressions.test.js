@@ -81,6 +81,49 @@ describe('death/respawn/save regressions', () => {
   });
 });
 
+describe('shop/village re-render stability', () => {
+  let dom, g;
+
+  before(async () => {
+    dom = await bootGame();
+    g = dom.window.__game;
+  });
+
+  after(() => dom.window.close());
+
+  test('an upgrade buy button keeps the same DOM node across repeated renderAll() calls', () => {
+    // Reproduces the click-loss bug: renderShop() used to rebuild every
+    // button from scratch (innerHTML = '') on every renderAll(), which
+    // fires on every kill. A click's mousedown/mouseup straddling one of
+    // those rebuilds landed on a button that no longer existed, so the
+    // click silently never fired. Node identity must survive as long as
+    // the upgrade set and maxed-state don't change.
+    const before_ = g.el.shopList.querySelector('.upgrade .buy:not(.buy-max)');
+    assert.ok(before_, 'expected at least one unlocked, unmaxed upgrade to render a buy button');
+    for (let i = 0; i < 5; i++) g.renderAll();
+    const after_ = g.el.shopList.querySelector('.upgrade .buy:not(.buy-max)');
+    assert.equal(after_, before_, 'the buy button node must be the same object after repeated re-renders');
+  });
+
+  test('a village building buy button keeps the same DOM node across repeated renderAll() calls', () => {
+    const before_ = g.el.villageList.querySelector('.upgrade .buy:not(.buy-max)');
+    assert.ok(before_, 'expected at least one village building to render a buy button');
+    for (let i = 0; i < 5; i++) g.renderAll();
+    const after_ = g.el.villageList.querySelector('.upgrade .buy:not(.buy-max)');
+    assert.equal(after_, before_, 'the village buy button node must be the same object after repeated re-renders');
+  });
+
+  test('a click on the Max button still fires after renderAll() has run in between', () => {
+    const maxBtn = g.el.shopList.querySelector('.upgrade .buy-max');
+    assert.ok(maxBtn, 'expected an unmaxed upgrade with a Max button');
+    g.renderAll(); // simulate a re-render landing between mousedown and click
+    let fired = false;
+    maxBtn.addEventListener('click', () => { fired = true; }, { once: true });
+    maxBtn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+    assert.ok(fired, 'the Max button must still be a live, listening element after a re-render');
+  });
+});
+
 describe('ascend', () => {
   let dom, g;
 
