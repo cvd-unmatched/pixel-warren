@@ -7,7 +7,7 @@ Legend: [x] = new traced sprite, [ ] = still old art
 ## Whispering Forest (boss: Ent)
 - [x] ent (boss)
 - [x] slime
-- [x] goblin
+- [ ] goblin
 - [x] sprig
 - [x] mudpup
 - [ ] thornling
@@ -101,9 +101,9 @@ Legend: [x] = new traced sprite, [ ] = still old art
 - [ ] sphinx
 
 ## Dragon's Peak (boss: Ancient Dragon)
-- [x] dragon (boss)
-- [x] dragonFrost (variant)
-- [x] dragonStorm (variant)
+- [ ] dragon (boss)
+- [ ] dragonFrost (variant)
+- [ ] dragonStorm (variant)
 - [x] skeleton
 - [x] wyvern
 - [ ] boneknight
