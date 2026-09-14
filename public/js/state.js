@@ -57,7 +57,7 @@
   // divisor per feedback that they were coming too easily.
   var BLESSING_GOLD_DIVISOR = 4500;
   function blessingGain(){ return Math.floor(Math.sqrt(state.totalGoldRun/BLESSING_GOLD_DIVISOR)); }
-  var DRAGON_KILLS_TO_UNLOCK_ASCEND = 5;
+  var DRAGON_KILLS_TO_UNLOCK_ASCEND = 1;
   var MAX_OFFLINE_SIM_STEPS = 3000;
   function defaultLevels(list){
     var levels = {};
@@ -95,7 +95,11 @@
     state.defeated = d.defeated || state.defeated;
     state.achievements = d.achievements || state.achievements;
     state.enemy = d.enemy || null;
-    finalBeaten = !!d.finalBeaten;
+    // recompute from dragonKills too, not just the stored flag -- if a
+    // balance change lowers DRAGON_KILLS_TO_UNLOCK_ASCEND after a save was
+    // already written, a save that now already clears the new bar must not
+    // wait for one more dragon kill just to notice
+    finalBeaten = !!d.finalBeaten || state.dragonKills >= DRAGON_KILLS_TO_UNLOCK_ASCEND;
     loadedSavedAt = d.savedAt || null;
   }
   function buildSavePayload(){
@@ -251,6 +255,9 @@
       // spawns immediately, and every wave after that is triggered by
       // clearing the previous one (see clearHydraHead in combat.js).
       if(ability.type === 'hydraHeads') triggerHydraWave(ability);
+      // secondWind isn't on a timer either -- it's a one-shot reaction to
+      // the boss's own HP crossing a threshold, checked from dealDamage.
+      else if(ability.type === 'secondWind') state.enemy.secondWindAbility = ability;
       else scheduleAbility(ability, token);
     });
   }
@@ -282,6 +289,15 @@
       else if(ability.type === 'regen') triggerRegen(ability);
       else if(ability.type === 'mathGate') triggerMathGate(ability);
       else if(ability.type === 'webPull') triggerWebPull(ability);
+      else if(ability.type === 'enrage') triggerEnrage(ability);
+      else if(ability.type === 'drain') triggerDrain(ability);
+      else if(ability.type === 'camouflage') triggerCamouflage(ability);
+      else if(ability.type === 'curse') triggerCurse(ability);
+      else if(ability.type === 'frostbite') triggerFrostbite(ability);
+      else if(ability.type === 'taunt') triggerTaunt(ability);
+      else if(ability.type === 'overcharge') triggerOvercharge(ability, token);
+      else if(ability.type === 'weakpoint') triggerWeakpoint(ability);
+      else if(ability.type === 'gamble') triggerGamble(ability);
       scheduleAbility(ability, token);
     }, ability.every);
   }
@@ -315,6 +331,109 @@
     if(!e || e.hp<=0) return;
     toast('The '+e.name+' yanks at your aim!');
     webPullFx();
+  }
+  // ---- Newer boss/monster abilities, all following the same shape as
+  // shield/regen above: read state.enemy fresh, set a Until timestamp or a
+  // one-shot flag, toast, re-render. Each is checked from dealDamage in
+  // combat.js at the point its effect actually matters. ----
+  function triggerEnrage(ability){
+    var e = state.enemy;
+    if(!e || e.hp<=0) return;
+    e.enrageUntil = Date.now() + ability.duration;
+    toast(e.name+' enters a rage -- no clean hits will land!');
+    screenShake('boss-shake');
+    renderEnemy(false);
+  }
+  function triggerDrain(ability){
+    var e = state.enemy;
+    if(!e || e.hp<=0) return;
+    e.drainUntil = Date.now() + ability.duration;
+    e.drainFrac = ability.drainFrac != null ? ability.drainFrac : 0.4;
+    toast(e.name+' drains at your strikes!');
+    renderEnemy(false);
+  }
+  function triggerCamouflage(ability){
+    var e = state.enemy;
+    if(!e || e.hp<=0 || state.addEnemy) return;
+    e.camoUntil = Date.now() + ability.duration;
+    toast(e.name+' fades from sight!');
+    renderEnemy(false);
+  }
+  // Blocks all damage, like the math gate, but broken by a burst of plain
+  // clicks instead of an answer -- onStageClick in combat.js routes clicks
+  // here instead of to dealDamage while curseActive is set.
+  function triggerCurse(ability){
+    var e = state.enemy;
+    if(!e || e.hp<=0 || state.addEnemy || e.curseActive) return;
+    e.curseActive = true;
+    e.curseProgress = 0;
+    e.curseNeeded = ability.clicksNeeded || 5;
+    toast(e.name+' binds you with a curse -- click free of it!');
+    renderEnemy(false);
+  }
+  function progressCurse(){
+    var e = state.enemy;
+    if(!e || !e.curseActive) return;
+    e.curseProgress++;
+    if(e.curseProgress >= e.curseNeeded){
+      e.curseActive = false;
+      toast('The curse breaks!');
+      renderEnemy(false);
+    } else {
+      spawnFloater(e.curseProgress+'/'+e.curseNeeded, 'blocked');
+    }
+  }
+  function triggerFrostbite(ability){
+    var e = state.enemy;
+    if(!e || e.hp<=0) return;
+    e.frostUntil = Date.now() + ability.duration;
+    e.frostReduction = ability.flatReduction || Math.max(1, Math.round(e.maxHp*0.01));
+    toast(e.name+' chills the air -- your strikes weaken!');
+    renderEnemy(false);
+  }
+  function triggerTaunt(ability){
+    var e = state.enemy;
+    if(!e || e.hp<=0) return;
+    e.tauntUntil = Date.now() + ability.duration;
+    e.tauntChance = ability.missChance != null ? ability.missChance : 0.4;
+    toast(e.name+' taunts you -- strikes may miss!');
+    renderEnemy(false);
+  }
+  // Channels for a moment; if it goes completely unpunished (no click at
+  // all during the window) it recovers a chunk of HP -- keeps a fight from
+  // being safely ignored mid-channel without threatening anything if
+  // you're actually there clicking.
+  function triggerOvercharge(ability, token){
+    var e = state.enemy;
+    if(!e || e.hp<=0) return;
+    e.overchargeClicked = false;
+    toast(e.name+' channels dark energy -- keep attacking!');
+    renderEnemy(false);
+    setTimeout(function(){
+      if(token !== bossFightToken || !state.enemy || state.enemy.hp<=0) return;
+      if(!state.enemy.overchargeClicked){
+        var healAmount = Math.max(1, Math.round(state.enemy.maxHp * (ability.healFrac||0.08)));
+        state.enemy.hp = Math.min(state.enemy.maxHp, state.enemy.hp + healAmount);
+        toast(state.enemy.name+' completes the ritual, recovering '+fmt(healAmount)+' HP!');
+        renderEnemy(false);
+        el.hpFill.classList.remove('regen-flash'); void el.hpFill.offsetWidth; el.hpFill.classList.add('regen-flash');
+      }
+    }, ability.channelDuration || 4000);
+  }
+  function triggerWeakpoint(ability){
+    var e = state.enemy;
+    if(!e || e.hp<=0) return;
+    e.weakpointUntil = Date.now() + ability.duration;
+    e.weakpointMult = ability.bonusMult || 2;
+    toast(e.name+' exposes a weak point -- strike now!');
+    renderEnemy(false);
+  }
+  function triggerGamble(ability){
+    var e = state.enemy;
+    if(!e || e.hp<=0) return;
+    e.gambleUntil = Date.now() + ability.duration;
+    toast(e.name+' invites a gamble -- fortune favors the bold!');
+    renderEnemy(false);
   }
   // Regen heals a fraction of MISSING hp (so it shrinks near full and near
   // dead, never runs away) and is capped at maxTicks per fight -- after

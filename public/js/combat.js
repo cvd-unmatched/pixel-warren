@@ -20,22 +20,61 @@
       spawnFloater('?', 'blocked');
       return;
     }
+    if(!isAdd && state.enemy.curseActive){
+      progressCurse();
+      return;
+    }
     if(!isAdd && state.enemy.hydraActive && !state.enemy.hydraVulnerable){
       spawnFloater('immune', 'blocked');
       return;
     }
-    if(!isAdd && isShielded(target)){
-      amount = Math.round(amount*(1-target.shieldReduction)*10)/10;
-      spawnFloater('-'+fmtDamage(amount), 'blocked');
-    } else {
-      spawnFloater('-'+fmtDamage(amount), isCrit?'crit':'');
+    // overcharge just wants to know an attack was actually attempted during
+    // its channel window -- even one that goes on to miss below still counts
+    if(!isAdd) target.overchargeClicked = true;
+    if(!isAdd && target.camoUntil && Date.now() < target.camoUntil){
+      spawnFloater('miss', 'blocked');
+      return;
     }
+    if(!isAdd && target.tauntUntil && Date.now() < target.tauntUntil && Math.random() < target.tauntChance){
+      spawnFloater('miss', 'blocked');
+      return;
+    }
+    var blocked = false;
+    if(!isAdd && isShielded(target)){
+      amount = amount*(1-target.shieldReduction);
+      blocked = true;
+    }
+    if(!isAdd && target.frostUntil && Date.now() < target.frostUntil){
+      amount = Math.max(0, amount - target.frostReduction);
+      blocked = true;
+    }
+    if(!isAdd && target.weakpointUntil && Date.now() < target.weakpointUntil){
+      amount = amount * target.weakpointMult;
+    }
+    if(!isAdd && target.gambleUntil && Date.now() < target.gambleUntil){
+      amount = Math.random() < 0.5 ? amount*2 : amount*0.5;
+    }
+    amount = Math.round(amount*10)/10;
+    if(!isAdd && target.enrageUntil && Date.now() < target.enrageUntil) isCrit = false;
+    spawnFloater('-'+fmtDamage(amount), blocked ? 'blocked' : (isCrit?'crit':''));
     // a small elemental flourish on a crit against a dragon -- these are
     // the flagship bosses, so they get a bit more "wow" than a plain floater
     if(isCrit && !isAdd && ELEMENTAL_HIT_FX[target.key]){
       burstParticles(ELEMENTAL_HIT_FX[target.key], 8);
     }
     target.hp -= amount;
+    if(!isAdd && target.drainUntil && Date.now() < target.drainUntil){
+      target.hp = Math.min(target.maxHp, target.hp + amount*target.drainFrac);
+    }
+    if(!isAdd && target.secondWindAbility && !target.secondWindUsed){
+      var threshold = target.secondWindAbility.threshold != null ? target.secondWindAbility.threshold : 0.2;
+      if(target.hp > 0 && target.hp/target.maxHp <= threshold){
+        target.secondWindUsed = true;
+        var healAmount = Math.max(1, Math.round(target.maxHp * (target.secondWindAbility.healFrac||0.25)));
+        target.hp = Math.min(target.maxHp, target.hp + healAmount);
+        toast(target.name+' catches a second wind, recovering '+fmt(healAmount)+' HP!');
+      }
+    }
     if(target.hp <= 0){
       if(isAdd) clearAdd(); else killEnemy();
     } else {
