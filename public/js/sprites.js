@@ -6533,17 +6533,17 @@ slime:{
 
   // Village building icons, keyed by the `icon` field on VILLAGE entries.
   var VILLAGE_ICONS = {
-    watchtower:{ palette:{o:'#2b2b2b',r:'#7a7a7a',w:'#e8c468'}, rows:[
+    watchtower:{ palette:{o:'#161210',r:'#5a544b',w:'#c9a24a'}, rows:[
       "..oooo..",".orrrro.",".orwwro.",".orrrro.",".orwwro.",".orrrro.","oorrrroo","........" ]},
-    forge:{ palette:{o:'#2b2b2b',r:'#6e6e6e',e:'#d97b3f'}, rows:[
+    forge:{ palette:{o:'#161210',r:'#4a463f',e:'#b8552a'}, rows:[
       "........","..oooo..",".orrrro.","oorrrroo","..oeeo..","..oeeo..",".oeeeeo.","........" ]},
-    barracks:{ palette:{o:'#2b1e12',r:'#8a4a2f',i:'#4a2f1a'}, rows:[
+    barracks:{ palette:{o:'#1c130c',r:'#5c3a26',i:'#2e1e12'}, rows:[
       "...o....","..ooo...",".orrro..",".orrro..","oorrroo.",".oiiio..",".oiiio..","........" ]},
-    shrine:{ palette:{o:'#16264a',c:'#3f7fd6',l:'#a8e6ff',i:'#2b2b2b'}, rows:[
+    shrine:{ palette:{o:'#0f1a30',c:'#241c38',l:'#5c1414',i:'#161210'}, rows:[
       "...o....","..ocl...",".occcl..","occcccl.",".oiiio..",".oiiio..","..ooo...","........" ]},
-    well:{ palette:{o:'#2b2b2b',r:'#8a8a8a',b:'#3f7fd6'}, rows:[
+    well:{ palette:{o:'#161210',r:'#5a544b',b:'#241c38'}, rows:[
       "..oooo..",".orrrro.","orrbbrro","orrbbrro","orrbbrro",".orrrro.","..oooo..","........" ]},
-    casino:{ palette:{o:'#2b1a0e',r:'#c0392b',w:'#f0ece0',y:'#e8c468',i:'#1a1410'}, rows:[
+    casino:{ palette:{o:'#1c0e0e',r:'#7a1f1f',w:'#9b9186',y:'#c9a24a',i:'#0c0a09'}, rows:[
       "..oooo..",".orwrwo.","orwrwrwo","oorrrroo","..oyyo..","..oyyo..",".oiiiio.","........" ]}
   };
   var VILLAGE_ICON_SVG = {};
