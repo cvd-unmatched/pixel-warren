@@ -58,23 +58,23 @@ Legend: [x] = new traced sprite, [ ] = still old art
 - [x] rustbot
 - [x] ruinwisp
 - [x] animatedarmor
-- [ ] tombcrawler
-- [ ] archivist
-- [ ] gargoyle
+- [x] tombcrawler
+- [x] archivist
+- [x] gargoyle
 
 ## Volcanic Wastes (boss: Cinder Baron)
 - [x] cinderBaron (boss)
 - [ ] emberimp
-- [ ] magmaslug
-- [ ] ashwraith
-- [ ] cinderhound
-- [ ] obsidiangolem
-- [ ] lavanewt
+- [x] magmaslug
+- [x] ashwraith
+- [x] cinderhound
+- [x] obsidiangolem
+- [x] lavanewt
 
 ## Shadow Fen (boss: Fen Witch)
 - [x] fenWitch (boss)
-- [ ] bogzombie
-- [ ] willothewisp
+- [x] bogzombie
+- [x] willothewisp
 - [ ] venomtoad
 - [ ] marshleech
 - [ ] rothag
@@ -118,7 +118,7 @@ Legend: [x] = new traced sprite, [ ] = still old art
 
 ---
 
-**Totals: 44 traced / ~88 total.**
+**Totals: 54 traced / ~88 total.**
 
 ## Flagged for redo (not just "not yet traced" -- explicitly disliked)
 - [ ] medusa -- user unhappy with current static trace, needs a new pass
