@@ -97,6 +97,11 @@
     tweenGoldTo(state.gold);
     stopSpriteAnimation();
     el.stage.classList.add('dying');
+    // otherwise the bar just sits frozen at whatever it last showed (100%,
+    // if this was a one-hit kill) through the whole death/respawn gap --
+    // reads as "the hit didn't register" even though it very much did
+    el.hpFill.style.width = '0%';
+    el.hpText.textContent = '0 / '+fmt(e.maxHp);
     // refresh buy-button affordability and the kill counter right away --
     // the top-bar gold number ticks up instantly (see tweenGoldTo), so the
     // shop must not wait for the enemy-respawn delay below or a

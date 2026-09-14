@@ -186,7 +186,7 @@
   /* traced sprites read a little dark/muddy against the arena's own dark
      background -- a soft white backlight, always on (not just for bosses),
      helps them pop without changing the sprite art itself. */
-  .sprite-glow{ position:absolute; width:160px; height:160px; border-radius:50%; background: radial-gradient(circle, rgba(255,255,255,0.22), transparent 72%); pointer-events:none; }
+  .sprite-glow{ position:absolute; width:160px; height:160px; border-radius:50%; background: radial-gradient(circle, rgba(184,85,42,0.16), transparent 72%); pointer-events:none; }
   .stage.boss .sprite-glow{ width:200px; height:200px; }
 
   .aura{ position:absolute; width:220px; height:220px; border-radius:50%; background: radial-gradient(circle, rgba(163,49,46,0.28), transparent 70%); display:none; }

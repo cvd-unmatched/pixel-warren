@@ -493,7 +493,13 @@
     f.style.left = (40 + Math.random()*40)+'%';
     f.style.top = (30 + Math.random()*20)+'%';
     el.floaters.appendChild(f);
+    // animationend alone isn't a safe cleanup trigger -- prefers-reduced-motion
+    // sets animation:none on .floater (see style.css), which means that event
+    // never fires and every single floater ever spawned would sit in the DOM
+    // forever, invisible (opacity:0) and getting slower to render with every
+    // click. A timer-based fallback guarantees removal either way.
     f.addEventListener('animationend', function(){ f.remove(); });
+    setTimeout(function(){ f.remove(); }, REDUCED_MOTION ? 50 : 1000);
   }
 
   /* ---------------- Big moment FX (boss abilities, elemental hits) ----

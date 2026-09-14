@@ -272,7 +272,12 @@
   persistLoad().then(function(d){
     var isNewGame = !d || typeof d !== 'object' || !Object.keys(d).length;
     applyLoadedSave(d);
-    if(!state.enemy) state.enemy = makeEnemyData(currentLevel(), false);
+    // A save can land in the ~0.5s gap between an enemy dying and its
+    // delayed respawn actually firing (tab backgrounded, browser closed
+    // mid-fight) -- loading that half-dead enemy back as-is looks like it
+    // "comes back" at the same low HP, dies again on the next hit, and only
+    // then does a real new monster show up. Catch it here instead.
+    if(!state.enemy || state.enemy.hp <= 0) state.enemy = makeEnemyData(currentLevel(), false);
     var offline = runOfflineProgress();
     if(state.enemy.isBoss) startBossAbilities(state.enemy.bossAbilities, bossFightToken);
     goldDisplayValue = state.gold;
