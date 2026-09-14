@@ -10,10 +10,27 @@
 <body>
   <header class="sim-header">
     <h1>Monster Simulator</h1>
+    <nav class="sim-tabs">
+      <button class="sim-tab active" id="tabFight" type="button">Fight Sim</button>
+      <button class="sim-tab" id="tabOverview" type="button">Overview</button>
+    </nav>
     <a href="/" class="sim-link">&larr; back to game</a>
   </header>
 
-  <div class="sim-layout">
+  <section class="overview" id="overviewView" hidden>
+    <div class="overview-groups" id="overviewGrid"></div>
+  </section>
+
+  <div class="zoom-modal" id="zoomModal" hidden>
+    <div class="zoom-modal-backdrop" id="zoomModalBackdrop"></div>
+    <div class="zoom-modal-card">
+      <button class="zoom-modal-close" id="zoomModalClose" type="button">&times;</button>
+      <div class="zoom-modal-sprite" id="zoomModalSprite"></div>
+      <div class="zoom-modal-name" id="zoomModalName"></div>
+    </div>
+  </div>
+
+  <div class="sim-layout" id="fightView">
     <aside class="sim-panel">
       <label class="sim-field">
         <span>Monster</span>

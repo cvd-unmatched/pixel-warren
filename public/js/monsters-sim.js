@@ -25,7 +25,17 @@
     addHpFill: document.getElementById('addHpFill'),
     mathGateBox: document.getElementById('mathGateBox'),
     mathGateQ: document.getElementById('mathGateQ'),
-    mathGateInput: document.getElementById('mathGateInput')
+    mathGateInput: document.getElementById('mathGateInput'),
+    tabFight: document.getElementById('tabFight'),
+    tabOverview: document.getElementById('tabOverview'),
+    fightView: document.getElementById('fightView'),
+    overviewView: document.getElementById('overviewView'),
+    overviewGrid: document.getElementById('overviewGrid'),
+    zoomModal: document.getElementById('zoomModal'),
+    zoomModalBackdrop: document.getElementById('zoomModalBackdrop'),
+    zoomModalClose: document.getElementById('zoomModalClose'),
+    zoomModalSprite: document.getElementById('zoomModalSprite'),
+    zoomModalName: document.getElementById('zoomModalName')
   };
 
   // find every level whose boss this monster key is, if any
@@ -362,6 +372,141 @@
     sim.hp = sim.maxHp; render(); el.stage.classList.remove('dying'); clearAdd(); clearMathGate();
     el.enemySub.textContent = '';
   });
+
+  /* ---------------- overview tab -- a browsable gallery of every monster,
+     grouped by realm, with an info badge (lore/power/abilities) and a
+     click-through into the fight sim for that monster. ---------------- */
+  function showFight(){
+    el.tabFight.classList.add('active');
+    el.tabOverview.classList.remove('active');
+    el.fightView.hidden = false;
+    el.overviewView.hidden = true;
+  }
+  function showOverview(){
+    el.tabOverview.classList.add('active');
+    el.tabFight.classList.remove('active');
+    el.overviewView.hidden = false;
+    el.fightView.hidden = true;
+    closeAllPopovers();
+  }
+  function closeAllPopovers(){
+    document.querySelectorAll('.overview-popover').forEach(function(p){ p.remove(); });
+  }
+  function openZoom(key, name){
+    var mon = MONSTERS[key];
+    if(!mon) return;
+    el.zoomModalSprite.innerHTML = svgFromGrid(mon.rows, mon.palette);
+    el.zoomModalName.textContent = name;
+    el.zoomModal.hidden = false;
+  }
+  function closeZoom(){ el.zoomModal.hidden = true; }
+  el.zoomModalBackdrop.addEventListener('click', closeZoom);
+  el.zoomModalClose.addEventListener('click', closeZoom);
+  document.addEventListener('keydown', function(ev){
+    if(ev.key === 'Escape' && !el.zoomModal.hidden) closeZoom();
+  });
+  function abilitiesFor(key, bLevel, isMatti){
+    var special = (typeof MONSTER_ABILITIES !== 'undefined' ? MONSTER_ABILITIES[key] : null);
+    return (bLevel ? bLevel.bossAbilities : null) || (isMatti ? MATTI_ABILITIES : null) || (special ? [special] : []);
+  }
+  function buildOverviewGroups(){
+    var keys = Object.keys(MONSTERS);
+    var assigned = {};
+    var groups = [];
+    (typeof LEVELS !== 'undefined' ? LEVELS : []).forEach(function(level){
+      var members = [];
+      if(level.boss){ members.push(level.boss); assigned[level.boss] = true; }
+      (level.enemies||[]).forEach(function(k){ members.push(k); assigned[k] = true; });
+      groups.push({ title: level.name, boss: level.boss, members: members });
+    });
+    var leftover = keys.filter(function(k){ return !assigned[k]; });
+    if(leftover.length) groups.push({ title: 'Other', boss: null, members: leftover });
+    return groups;
+  }
+  function renderCardPopover(card, key, bLevel, isMatti){
+    closeAllPopovers();
+    var lore = (typeof BESTIARY !== 'undefined' && BESTIARY[key]) ? BESTIARY[key] : null;
+    var abilities = abilitiesFor(key, bLevel, isMatti);
+    var html = lore
+      ? '<strong>Lore:</strong> ' + lore.lore + '<br><strong>Power:</strong> ' + lore.power
+      : '<em>No Bestiary entry.</em>';
+    if(abilities.length){
+      html += abilities.map(function(a){ return '<div class="popover-ability">' + describeAbility(a) + '</div>'; }).join('');
+    }
+    var pop = document.createElement('div');
+    pop.className = 'overview-popover';
+    pop.innerHTML = html;
+    card.appendChild(pop);
+    setTimeout(function(){
+      document.addEventListener('click', function onDoc(ev){
+        if(!pop.contains(ev.target)){ pop.remove(); document.removeEventListener('click', onDoc); }
+      });
+    }, 0);
+  }
+  function renderOverview(){
+    el.overviewGrid.innerHTML = '';
+    var groups = buildOverviewGroups();
+    var container = document.createDocumentFragment();
+    groups.forEach(function(group){
+      var section = document.createElement('div');
+      section.className = 'overview-group';
+      var h2 = document.createElement('h2');
+      h2.textContent = group.title;
+      section.appendChild(h2);
+      var grid = document.createElement('div');
+      grid.className = 'overview-grid';
+      group.members.forEach(function(key){
+        var mon = MONSTERS[key];
+        if(!mon) return;
+        var isBossHere = key === group.boss;
+        var bLevel = bossLevelFor(key);
+        var isMatti = key === 'matti';
+        var card = document.createElement('div');
+        card.className = 'overview-card' + (isBossHere ? ' is-boss' : '');
+        var spriteBox = document.createElement('div');
+        spriteBox.className = 'card-sprite';
+        spriteBox.innerHTML = svgFromGrid(mon.rows, mon.palette);
+        spriteBox.addEventListener('click', function(ev){
+          ev.stopPropagation();
+          openZoom(key, bLevel ? bLevel.bossName : key);
+        });
+        card.appendChild(spriteBox);
+        var nameEl = document.createElement('div');
+        nameEl.className = 'card-name';
+        nameEl.textContent = bLevel ? bLevel.bossName : key;
+        card.appendChild(nameEl);
+        if(isBossHere){
+          var badge = document.createElement('div');
+          badge.className = 'card-boss-badge';
+          badge.textContent = 'BOSS';
+          card.appendChild(badge);
+        }
+        var info = document.createElement('div');
+        info.className = 'info-badge';
+        info.textContent = 'i';
+        info.title = 'Lore, power & abilities';
+        info.addEventListener('click', function(ev){
+          ev.stopPropagation();
+          if(card.querySelector('.overview-popover')){ closeAllPopovers(); return; }
+          renderCardPopover(card, key, bLevel, isMatti);
+        });
+        card.appendChild(info);
+        card.addEventListener('click', function(){
+          closeAllPopovers();
+          el.monsterSelect.value = key;
+          loadMonster(key);
+          showFight();
+        });
+        grid.appendChild(card);
+      });
+      section.appendChild(grid);
+      container.appendChild(section);
+    });
+    el.overviewGrid.appendChild(container);
+  }
+
+  el.tabFight.addEventListener('click', showFight);
+  el.tabOverview.addEventListener('click', function(){ showOverview(); renderOverview(); });
 
   populateSelect();
   el.monsterSelect.value = 'slime';
