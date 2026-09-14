@@ -86,7 +86,13 @@
       }
       state.bossReady = false;
       state.killsInLevel = 0;
+      // guarded by bossFightToken: if the player has already moved on (e.g.
+      // fled, or a new enemy spawned some other way) before this fires, it's
+      // a stale respawn and must not clobber whatever's on screen now -- see
+      // scheduleAbility above for the same pattern.
+      var tokenAtBossKill = bossFightToken;
       setTimeout(function(){
+        if(bossFightToken !== tokenAtBossKill) return;
         if(state.levelIndex < LEVELS.length-1){
           state.levelIndex++;
           lastLevelRendered = -1;
@@ -104,7 +110,15 @@
         state.gambleTokens++;
         toast('Lucky find! +1 Gambling Token');
       }
-      setTimeout(function(){ spawnEnemy(false); renderAll(); }, 420);
+      // same staleness guard as the boss-kill path above -- without it, a
+      // Challenge click during this delay gets silently overwritten by this
+      // timer's regular-enemy respawn once it fires (reported as "clicking
+      // Challenge does nothing" / "goes to the boss then back").
+      var tokenAtKill = bossFightToken;
+      setTimeout(function(){
+        if(bossFightToken !== tokenAtKill) return;
+        spawnEnemy(false); renderAll();
+      }, 420);
     }
     save();
   }
