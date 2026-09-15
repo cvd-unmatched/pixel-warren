@@ -40,6 +40,27 @@ body{
 .sim-tab.active{ background:#3a332a; color:#e8e0d0; border-color:#c9a24a; }
 
 .overview{ padding:16px; }
+.bg-swatches{ display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.bg-swatches-label{ font-size:11.5px; color:#c9c0b0; }
+.bg-swatch{
+  width:24px; height:24px; border-radius:5px; border:2px solid #3a332a; cursor:pointer; padding:0;
+}
+.bg-swatch:hover{ border-color:#c9a24a; }
+.bg-swatch.active{ border-color:#c9a24a; box-shadow:0 0 0 2px rgba(201,162,74,0.4); }
+.bg-swatch-checker{
+  background-image: linear-gradient(45deg,#888 25%,transparent 25%), linear-gradient(-45deg,#888 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#888 75%), linear-gradient(-45deg,transparent 75%,#888 75%);
+  background-size:8px 8px; background-position:0 0,0 4px,4px -4px,-4px 0; background-color:#ccc;
+}
+body[data-sprite-bg="black"] .card-sprite, body[data-sprite-bg="black"] .zoom-modal-sprite{ background:#000; }
+body[data-sprite-bg="white"] .card-sprite, body[data-sprite-bg="white"] .zoom-modal-sprite{ background:#fff; }
+body[data-sprite-bg="grey"] .card-sprite, body[data-sprite-bg="grey"] .zoom-modal-sprite{ background:#808080; }
+body[data-sprite-bg="magenta"] .card-sprite, body[data-sprite-bg="magenta"] .zoom-modal-sprite{ background:#ff00ff; }
+body[data-sprite-bg="checker"] .card-sprite, body[data-sprite-bg="checker"] .zoom-modal-sprite{
+  background-image: linear-gradient(45deg,#888 25%,transparent 25%), linear-gradient(-45deg,#888 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#888 75%), linear-gradient(-45deg,transparent 75%,#888 75%);
+  background-size:16px 16px; background-position:0 0,0 8px,8px -8px,-8px 0; background-color:#ccc;
+}
 .overview-groups{ display:flex; flex-direction:column; }
 .overview-group{ margin-bottom:22px; }
 .overview-group h2{ font-size:14px; color:#c9a24a; margin:0 0 10px; border-bottom:1px solid #3a332a; padding-bottom:6px; }

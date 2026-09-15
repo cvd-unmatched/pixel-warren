@@ -7,22 +7,22 @@ Legend: [x] = new traced sprite, [ ] = still old art
 ## Whispering Forest (boss: Ent)
 - [x] ent (boss)
 - [x] slime
-- [ ] goblin
+- [x] goblin
 - [x] sprig
 - [x] mudpup
-- [ ] thornling
-- [ ] mosshopper
-- [ ] bramblewolf
-- [ ] gladefly
+- [x] thornling
+- [x] mosshopper
+- [x] bramblewolf
+- [x] gladefly
 
 ## Mossy Hollow (boss: Hollow King)
 - [x] hollowKing (boss)
-- [ ] fungling
-- [ ] pixiemoth
-- [ ] bograt
-- [ ] willowisp
-- [ ] tangleroot
-- [ ] hollowstag
+- [x] fungling
+- [x] pixiemoth
+- [x] bograt
+- [x] willowisp
+- [x] tangleroot
+- [x] hollowstag
 
 ## Deep Cave (boss: Crystal Golem)
 - [x] crystalGolem (boss)
@@ -36,7 +36,7 @@ Legend: [x] = new traced sprite, [ ] = still old art
 - [x] quartzcrab
 
 ## Underdark Depths (boss: Abyssal Warden)
-- [x] abyssalWarden (boss)
+- [ ] abyssalWarden (boss)
 - [x] deepspider
 - [x] gloomwraith
 - [x] fungalhorror
@@ -64,7 +64,7 @@ Legend: [x] = new traced sprite, [ ] = still old art
 
 ## Volcanic Wastes (boss: Cinder Baron)
 - [x] cinderBaron (boss)
-- [ ] emberimp
+- [x] emberimp
 - [x] magmaslug
 - [x] ashwraith
 - [x] cinderhound
@@ -75,18 +75,18 @@ Legend: [x] = new traced sprite, [ ] = still old art
 - [x] fenWitch (boss)
 - [x] bogzombie
 - [x] willothewisp
-- [ ] venomtoad
-- [ ] marshleech
-- [ ] rothag
-- [ ] plaguerat
+- [x] venomtoad
+- [x] marshleech
+- [x] rothag
+- [x] plaguerat
 
 ## Storm Reaches (boss: Storm Herald)
 - [x] stormHerald (boss)
-- [ ] stormsprite
-- [ ] cloudserpent
-- [ ] thunderhawk
-- [ ] galewisp
-- [ ] lightningelemental
+- [x] stormsprite
+- [x] cloudserpent
+- [x] thunderhawk
+- [x] galewisp
+- [x] lightningelemental
 - [ ] skyjelly
 
 ## Mythic Depths (boss: Hydra)
@@ -101,9 +101,9 @@ Legend: [x] = new traced sprite, [ ] = still old art
 - [ ] sphinx
 
 ## Dragon's Peak (boss: Ancient Dragon)
-- [ ] dragon (boss)
-- [ ] dragonFrost (variant)
-- [ ] dragonStorm (variant)
+- [x] dragon (boss)
+- [x] dragonFrost (variant)
+- [x] dragonStorm (variant)
 - [x] skeleton
 - [x] wyvern
 - [ ] boneknight
@@ -118,8 +118,8 @@ Legend: [x] = new traced sprite, [ ] = still old art
 
 ---
 
-**Totals: 54 traced / ~88 total.**
+**Totals: 72 traced / 87 total.**
 
-## Flagged for redo (not just "not yet traced" -- explicitly disliked)
-- [ ] medusa -- user unhappy with current static trace, needs a new pass
-- [ ] hydra -- main body sprite needs a redo (current one reads badly); escalating-heads power itself confirmed working correctly (was a /monsters simulator bug, now fixed)
+## Flagged for redo (not just "not yet traced", explicitly disliked)
+- [ ] medusa, user unhappy with current static trace, needs a new pass
+- [ ] hydra, main body sprite needs a redo (current one reads badly); escalating-heads power itself confirmed working correctly (was a /monsters simulator bug, now fixed)

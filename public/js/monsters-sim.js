@@ -35,8 +35,33 @@
     zoomModalBackdrop: document.getElementById('zoomModalBackdrop'),
     zoomModalClose: document.getElementById('zoomModalClose'),
     zoomModalSprite: document.getElementById('zoomModalSprite'),
-    zoomModalName: document.getElementById('zoomModalName')
+    zoomModalName: document.getElementById('zoomModalName'),
+    bgSwatches: document.getElementById('bgSwatches')
   };
+
+  // Sprite background swatches: stray/leftover pixels from a bad trace are
+  // easy to miss against the default dark panel (see the snowwolf/gargoyle
+  // bugs) -- flipping to black/white/grey/magenta/checker makes them jump
+  // out immediately. Remembered across reloads since this is a QA tool.
+  (function initBgSwatches(){
+    var saved = null;
+    try { saved = localStorage.getItem('spriteBg'); } catch(e){}
+    var active = saved || 'default';
+    document.body.dataset.spriteBg = active;
+    function setActive(bg){
+      active = bg;
+      document.body.dataset.spriteBg = bg;
+      try { localStorage.setItem('spriteBg', bg); } catch(e){}
+      el.bgSwatches.querySelectorAll('.bg-swatch').forEach(function(btn){
+        btn.classList.toggle('active', btn.dataset.bg === bg);
+      });
+    }
+    el.bgSwatches.querySelectorAll('.bg-swatch').forEach(function(btn){
+      btn.type = 'button';
+      btn.addEventListener('click', function(){ setActive(btn.dataset.bg); });
+    });
+    setActive(active);
+  })();
 
   // find every level whose boss this monster key is, if any
   function bossLevelFor(key){
