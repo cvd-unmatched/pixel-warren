@@ -57,6 +57,7 @@
     statCritMult: document.getElementById('statCritMult'),
     statGold: document.getElementById('statGold'),
     statKills: document.getElementById('statKills'),
+    statStreak: document.getElementById('statStreak'),
     shopList: document.getElementById('shopList'),
     villageList: document.getElementById('villageList'),
     villageScene: document.getElementById('villageScene'),
@@ -147,7 +148,7 @@
       el.dragonDistance.textContent = realmsToGo + ' realm' + (realmsToGo===1?'':'s') + ' until Dragon\'s Peak.';
     } else if(!finalBeaten){
       var killsLeft = DRAGON_KILLS_TO_UNLOCK_ASCEND - state.dragonKills;
-      el.dragonDistance.textContent = 'At Dragon\'s Peak -- defeat the Ancient Dragon '+killsLeft+' more time'+(killsLeft===1?'':'s')+' to unlock Ascend.';
+      el.dragonDistance.textContent = 'At Dragon\'s Peak. Defeat the Ancient Dragon '+killsLeft+' more time'+(killsLeft===1?'':'s')+' to unlock Ascend.';
     } else {
       el.dragonDistance.textContent = '';
     }
@@ -170,22 +171,43 @@
     var regenLeft = regenAbility ? Math.max(0, regenAbility.maxTicks - (e.regenTicksUsed||0)) : 0;
     var regenThreshold = regenAbility ? (regenAbility.lowHpThreshold != null ? regenAbility.lowHpThreshold : 0.25) : 0;
     var regenArmed = regenAbility && (e.hp/e.maxHp <= regenThreshold);
+    var bossPower = e.isBoss && BESTIARY[e.key] && BESTIARY[e.key].power !== 'No special power.' ? BESTIARY[e.key].power : '';
+    var now = Date.now();
+    // Curse fully blocks damage the same way the math gate and a safe hydra
+    // body do, so it gets the same always-visible treatment (not just the
+    // toast when it first lands) -- including live click-progress, since
+    // breaking it is a deliberate multi-click action the player is mid-way
+    // through, not a one-off event to just be told about once.
+    var cursed = !!e.curseActive;
     if(showingAdd && e.hydraActive){ el.enemySub.textContent = 'a head guards the body'; }
     else if(showingAdd){ el.enemySub.textContent = 'a guardian blocks the way'; }
-    else if(e.hydraActive && e.hydraVulnerable){ el.enemySub.textContent = 'exposed -- strike now!'; }
+    else if(e.hydraActive && e.hydraVulnerable){ el.enemySub.textContent = 'exposed, strike now!'; }
     else if(e.hydraActive){ el.enemySub.textContent = 'body is safe until the heads fall'; }
     else if(e.mathGateActive){ el.enemySub.textContent = 'answer the question to keep attacking'; }
-    else if(regenAbility && regenLeft<=0){ el.enemySub.textContent = 'exhausted -- no more regeneration'; }
-    else if(regenArmed){ el.enemySub.textContent = 'critically wounded -- regenerating ('+regenLeft+' left)'; }
+    else if(cursed){ el.enemySub.textContent = 'Cursed! '+(e.curseProgress||0)+'/'+e.curseNeeded+' clicks to break free'; }
+    else if(e.camoUntil && now < e.camoUntil){ el.enemySub.textContent = 'faded from sight, hits are missing'; }
+    else if(e.tauntUntil && now < e.tauntUntil){ el.enemySub.textContent = 'taunting you, hits may miss'; }
+    else if(e.weakpointUntil && now < e.weakpointUntil){ el.enemySub.textContent = 'weak point exposed, hit hard now!'; }
+    else if(e.gambleUntil && now < e.gambleUntil){ el.enemySub.textContent = 'inviting a gamble, damage is a coin flip'; }
+    else if(e.overchargeUntil && now < e.overchargeUntil){ el.enemySub.textContent = 'channeling a ritual, attack to interrupt it!'; }
+    else if(e.frostUntil && now < e.frostUntil){ el.enemySub.textContent = 'chilling the air, hits are weakened'; }
+    else if(e.enrageUntil && now < e.enrageUntil){ el.enemySub.textContent = 'enraged, no crits will land'; }
+    else if(e.drainUntil && now < e.drainUntil){ el.enemySub.textContent = 'draining your hits to heal'; }
+    else if(regenAbility && regenLeft<=0){ el.enemySub.textContent = 'exhausted, no more regeneration'; }
+    else if(regenArmed){ el.enemySub.textContent = 'critically wounded, regenerating ('+regenLeft+' left)'; }
+    else if(bossPower){ el.enemySub.textContent = 'Power: '+bossPower; }
     else { el.enemySub.textContent = ''; }
     el.stage.classList.toggle('boss', e.isBoss);
     el.stage.classList.toggle('shielded', shielded);
+    el.stage.classList.toggle('cursed', cursed);
     el.stage.classList.toggle('guarded', showingAdd);
     el.mattiAngels.classList.toggle('show', e.key === 'matti');
     el.bossBanner.classList.toggle('show', e.isBoss && !showingAdd);
     el.bossBanner.classList.toggle('shielded', shielded);
-    el.bossBanner.textContent = shielded ? 'Shielded' : 'Boss encounter';
+    el.bossBanner.classList.toggle('cursed', cursed);
+    el.bossBanner.textContent = cursed ? 'Cursed' : (shielded ? 'Shielded' : 'Boss encounter');
     el.hpFill.classList.toggle('shielded', shielded);
+    el.hpFill.classList.toggle('cursed', cursed);
     if(fresh){
       stopSpriteAnimation();
       el.spriteWrap.innerHTML = svgFromGrid(mon.rows, mon.palette);
@@ -199,7 +221,17 @@
       }
     }
     var pct = Math.max(0, e.hp/e.maxHp*100);
-    el.hpFill.style.width = pct+'%';
+    if(fresh){
+      // A brand-new target should read as full health instantly, not visibly
+      // fill up from the previous target's leftover bar width -- that filling
+      // motion reads as "healing", which is the wrong cue for "new monster".
+      el.hpFill.style.transition = 'none';
+      el.hpFill.style.width = pct+'%';
+      void el.hpFill.offsetWidth;
+      el.hpFill.style.transition = '';
+    } else {
+      el.hpFill.style.width = pct+'%';
+    }
     el.hpText.textContent = fmt(Math.max(0,e.hp)) + ' / ' + fmt(e.maxHp);
 
     // Bosses only ever show up when you walk in on purpose -- farm normal
@@ -259,6 +291,7 @@
     el.statCritMult.textContent = critMultVal().toFixed(1)+'x';
     el.statGold.textContent = goldMultVal().toFixed(2)+'x';
     el.statKills.textContent = state.totalKills;
+    el.statStreak.textContent = state.loginStreak + ' day' + (state.loginStreak===1?'':'s');
     updateGambleButtons();
   }
 

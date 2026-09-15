@@ -325,6 +325,7 @@ async function handleConfig(req, res) {
     bestiaryShowAll: process.env.BESTIARY === 'true',
     toolsEnabled: TOOLS_ENABLED,
     godMode: process.env.GOD === 'true',
+    clickLogging: process.env.LOGGING === 'true',
     autoUpgradeUser: process.env.AUTOUPGRADE || null
   });
 }

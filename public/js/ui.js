@@ -75,7 +75,7 @@
     var thoughtLoggedIn = !el.accountLoggedIn.hidden;
     if(thoughtLoggedIn && !loggedIn){
       refreshAccountUI(false, null);
-      toast('Signed out -- this account signed in somewhere else.', 4500);
+      toast('Signed out. This account signed in somewhere else.', 4500);
     }
   }
   function checkAuthStatus(){
@@ -86,7 +86,7 @@
       return d;
     }).catch(function(){
       backendReachable = false;
-      el.authError.textContent = "Accounts need the game running via its own server (node server.js) -- not available in this preview.";
+      el.authError.textContent = "Accounts need the game running via its own server (node server.js), not available in this preview.";
       return { loggedIn:false };
     });
   }
@@ -94,7 +94,7 @@
     fetch('api/leaderboard').then(function(r){ return r.json(); }).then(function(d){
       var rows = d.rows || [];
       if(!rows.length){
-        el.leaderboardList.innerHTML = '<div class="leaderboard-empty">No one on the board yet -- Ascend at least once to appear here.</div>';
+        el.leaderboardList.innerHTML = '<div class="leaderboard-empty">No one on the board yet. Ascend at least once to appear here.</div>';
         return;
       }
       el.leaderboardList.innerHTML = rows.map(function(r, i){
@@ -125,7 +125,7 @@
   el.authForm.addEventListener('submit', function(ev){
     ev.preventDefault();
     if(!backendReachable){
-      el.authError.textContent = "Accounts need the game running via its own server (node server.js) -- not available in this preview.";
+      el.authError.textContent = "Accounts need the game running via its own server (node server.js), not available in this preview.";
       return;
     }
     var username = el.authUsername.value.trim();
@@ -149,7 +149,7 @@
           // on this device instead of starting from a blank slate.
           save();
           setTimeout(loadLeaderboard, 400);
-          toast('Account created -- this device\'s progress is now saved to your account.');
+          toast('Account created. This device\'s progress is now saved to your account.');
         } else {
           loadLeaderboard();
           // Existing account: its own save is the source of truth, so pull
@@ -167,7 +167,7 @@
       })
       .catch(function(){
         backendReachable = false;
-        el.authError.textContent = "Couldn't reach the server -- accounts don't work without the game running via node server.js.";
+        el.authError.textContent = "Couldn't reach the server. Accounts don't work without the game running via node server.js.";
       })
       .finally(function(){ el.authSubmitBtn.disabled = false; });
   });
@@ -175,7 +175,7 @@
     fetch('api/logout', { method:'POST' }).then(function(){
       refreshAccountUI(false, null);
       loadLeaderboard();
-      toast('Signed out -- progress now saves to this device only.');
+      toast('Signed out. Progress now saves to this device only.');
     });
   });
   checkAuthStatus();
@@ -226,7 +226,7 @@
       // (an artifact viewer, this dev tool's own preview pane, etc.) since
       // Document Picture-in-Picture requires a top-level, unframed page.
       toast(inIframe()
-        ? 'Pop-out isn\'t available in an embedded preview -- open the game in its own browser tab to use it.'
+        ? 'Pop-out isn\'t available in an embedded preview. Open the game in its own browser tab to use it.'
         : 'Pop-out is blocked by the browser right now.');
     });
   }
@@ -241,7 +241,7 @@
     try{ win.close(); }catch(e){}
   }
   el.pipBtn.addEventListener('click', function(){ pipWindow ? closePip() : openPip(); });
-  el.challengeBtn.addEventListener('click', function(){ spawnEnemy(true); renderAll(); save(); });
+  el.challengeBtn.addEventListener('click', function(){ lastBossEnterAt = Date.now(); spawnEnemy(true); renderAll(); save(); });
   el.fleeBtn.addEventListener('click', fleeBoss);
   el.mathGateBox.addEventListener('submit', function(ev){
     ev.preventDefault();
@@ -257,6 +257,7 @@
   fetch('api/config').then(function(r){ return r.json(); }).then(function(cfg){
     if(cfg && cfg.bestiaryShowAll){ bestiaryShowAll = true; renderBestiary(); }
     if(cfg && cfg.godMode){ godMode = true; }
+    if(cfg && cfg.clickLogging){ loggingEnabled = true; }
     // AUTOUPGRADE=<username> on the server: only the matching logged-in
     // account gets a background loop that auto-buys everything it can
     // afford. Never a per-player toggle -- has to match a real session.

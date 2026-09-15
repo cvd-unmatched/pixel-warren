@@ -79,6 +79,23 @@ describe('death/respawn/save regressions', () => {
       assert.ok(g.state.enemy.isBoss, 'a stale respawn must not have quietly swapped the boss back out for a regular monster');
     });
   });
+
+  test('a Flee click landing right after Challenge is ignored, but a deliberate Flee later works', () => {
+    // Flee sits in the exact screen spot Challenge just occupied (one
+    // button hides as the other appears in the same slot) -- a double
+    // click, or a second tap while the first was still landing, could hit
+    // Challenge then immediately hit Flee, bouncing the player right back
+    // out of the fight they just picked. See lastBossEnterAt in combat.js.
+    g.spawnEnemy(true);
+    assert.ok(g.state.enemy.isBoss);
+    g.lastBossEnterAt = Date.now();
+    g.fleeBoss();
+    assert.ok(g.state.enemy.isBoss, 'a Flee click landing right after Challenge must be ignored');
+
+    g.lastBossEnterAt = Date.now() - 1000; // grace period has elapsed
+    g.fleeBoss();
+    assert.ok(!g.state.enemy.isBoss, 'a deliberate Flee after the grace period should still work');
+  });
 });
 
 describe('shop/village re-render stability', () => {

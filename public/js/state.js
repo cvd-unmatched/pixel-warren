@@ -365,7 +365,7 @@
     var e = state.enemy;
     if(!e || e.hp<=0) return;
     e.enrageUntil = Date.now() + ability.duration;
-    toast(e.name+' enters a rage -- no clean hits will land!');
+    toast(e.name+' enters a rage, no clean hits will land!');
     screenShake('boss-shake');
     renderEnemy(false);
   }
@@ -393,7 +393,7 @@
     e.curseActive = true;
     e.curseProgress = 0;
     e.curseNeeded = ability.clicksNeeded || 5;
-    toast(e.name+' binds you with a curse -- click free of it!');
+    toast(e.name+' binds you with a curse, click free of it!');
     renderEnemy(false);
   }
   function progressCurse(){
@@ -413,7 +413,7 @@
     if(!e || e.hp<=0) return;
     e.frostUntil = Date.now() + ability.duration;
     e.frostReduction = ability.flatReduction || Math.max(1, Math.round(e.maxHp*0.01));
-    toast(e.name+' chills the air -- your strikes weaken!');
+    toast(e.name+' chills the air, your strikes weaken!');
     renderEnemy(false);
   }
   function triggerTaunt(ability){
@@ -421,7 +421,7 @@
     if(!e || e.hp<=0) return;
     e.tauntUntil = Date.now() + ability.duration;
     e.tauntChance = ability.missChance != null ? ability.missChance : 0.4;
-    toast(e.name+' taunts you -- strikes may miss!');
+    toast(e.name+' taunts you, strikes may miss!');
     renderEnemy(false);
   }
   // Channels for a moment; if it goes completely unpunished (no click at
@@ -432,7 +432,8 @@
     var e = state.enemy;
     if(!e || e.hp<=0) return;
     e.overchargeClicked = false;
-    toast(e.name+' channels dark energy -- keep attacking!');
+    e.overchargeUntil = Date.now() + (ability.channelDuration || 4000);
+    toast(e.name+' channels dark energy, keep attacking!');
     renderEnemy(false);
     setTimeout(function(){
       if(token !== bossFightToken || !state.enemy || state.enemy.hp<=0) return;
@@ -450,14 +451,14 @@
     if(!e || e.hp<=0) return;
     e.weakpointUntil = Date.now() + ability.duration;
     e.weakpointMult = ability.bonusMult || 2;
-    toast(e.name+' exposes a weak point -- strike now!');
+    toast(e.name+' exposes a weak point, strike now!');
     renderEnemy(false);
   }
   function triggerGamble(ability){
     var e = state.enemy;
     if(!e || e.hp<=0) return;
     e.gambleUntil = Date.now() + ability.duration;
-    toast(e.name+' invites a gamble -- fortune favors the bold!');
+    toast(e.name+' invites a gamble, fortune favors the bold!');
     renderEnemy(false);
   }
   // Regen heals a fraction of MISSING hp (so it shrinks near full and near
@@ -511,7 +512,7 @@
       renderEnemy(false);
     } else {
       el.mathGateBox.classList.remove('shake'); void el.mathGateBox.offsetWidth; el.mathGateBox.classList.add('shake');
-      toast('Not quite -- try again.');
+      toast('Not quite, try again.');
     }
   }
   function clearAdd(){
@@ -548,7 +549,7 @@
       spawnHydraHead(e.hydraAbility);
     } else {
       e.hydraVulnerable = true;
-      toast(e.name+' recoils -- strike now!');
+      toast(e.name+' recoils, strike now!');
       renderEnemy(true);
       var token = bossFightToken;
       setTimeout(function(){

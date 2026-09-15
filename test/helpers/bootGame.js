@@ -76,7 +76,11 @@ async function bootGame(){
     '  triggerCurse: triggerCurse, progressCurse: progressCurse, triggerFrostbite: triggerFrostbite,',
     '  triggerTaunt: triggerTaunt, triggerOvercharge: triggerOvercharge, triggerWeakpoint: triggerWeakpoint,',
     '  triggerGamble: triggerGamble, triggerShield: triggerShield, triggerSummon: triggerSummon,',
-    '  triggerRegen: triggerRegen, spawnFloater: spawnFloater',
+    '  triggerRegen: triggerRegen, spawnFloater: spawnFloater,',
+    '  triggerWebPull: triggerWebPull, triggerMathGate: triggerMathGate, answerMathGate: answerMathGate,',
+    '  triggerHydraWave: triggerHydraWave, spawnHydraHead: spawnHydraHead, clearHydraHead: clearHydraHead,',
+    '  startBossAbilities: startBossAbilities, fleeBoss: fleeBoss,',
+    '  get lastBossEnterAt(){ return lastBossEnterAt; }, set lastBossEnterAt(v){ lastBossEnterAt = v; }',
     '};'
   ].join('\n');
 

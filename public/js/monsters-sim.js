@@ -202,8 +202,8 @@
       el.enemySub.textContent = 'body is safe until the heads fall';
     } else {
       h.vulnerable = true;
-      toast(sim.name + ' recoils -- strike now!');
-      el.enemySub.textContent = 'exposed -- strike now!';
+      toast(sim.name + ' recoils, strike now!');
+      el.enemySub.textContent = 'exposed, strike now!';
       setTimeout(function(){
         if(!sim.hydra || sim.hp <= 0) return;
         h.vulnerable = false;
@@ -246,7 +246,7 @@
       toast('Correct! '+sim.name+' grumbles and lets you through.');
     } else {
       el.mathGateBox.classList.remove('shake'); void el.mathGateBox.offsetWidth; el.mathGateBox.classList.add('shake');
-      toast('Not quite -- try again.');
+      toast('Not quite, try again.');
     }
   }
   el.mathGateBox.addEventListener('submit', function(ev){

@@ -285,7 +285,7 @@
   /* ---------------- monster load/new ---------------- */
   function populateMonsterSelect(){
     var keys = Object.keys(window.MONSTERS || {}).sort();
-    el.monsterSelect.innerHTML = '<option value="">-- select --</option>';
+    el.monsterSelect.innerHTML = '<option value="">select...</option>';
     keys.forEach(function(k){
       var opt = document.createElement('option');
       opt.value = k; opt.textContent = k;

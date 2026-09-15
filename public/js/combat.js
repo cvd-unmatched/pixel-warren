@@ -169,8 +169,18 @@
 
   // Backing out of a boss fight you picked: keep bossReady set (you can
   // walk back in anytime) and just go back to farming regular enemies.
+  //
+  // Flee sits in the exact screen spot Challenge just occupied (one button
+  // hides as the other appears, same slot) -- a double-click, or a second
+  // tap while the first was still landing, could hit Challenge then
+  // immediately hit Flee, bouncing you right back out of the fight you
+  // just picked. A short grace period after entering a boss fight ignores
+  // Flee clicks that land too soon to be a deliberate "back out" decision.
+  var lastBossEnterAt = 0;
+  var FLEE_GRACE_MS = 600;
   function fleeBoss(){
     if(!state.enemy || !state.enemy.isBoss) return;
+    if(Date.now() - lastBossEnterAt < FLEE_GRACE_MS) return;
     toast('Fled from '+state.enemy.name+'. Farm up and try again anytime.');
     spawnEnemy(false);
     renderAll();
@@ -186,13 +196,33 @@
   // "jitter clicking") never notices it -- a real script-driven autoclicker
   // still runs well past this, so the anti-cheat intent holds either way.
   var MIN_CLICK_INTERVAL_MS = 40;
+  // A tiny always-current readout of click timing, only built when
+  // LOGGING=true asks for it (see loggingEnabled above) -- answers "are my
+  // clicks all landing, and how far apart are they really" on a device
+  // with no attached devtools to check the console on.
+  var clickLogEl = null, clickLogStats = { received:0, dropped:0, landed:0 };
+  function logClick(outcome, gapMs){
+    if(!loggingEnabled) return;
+    console.log('[click] '+outcome+' gap='+Math.round(gapMs)+'ms');
+    clickLogStats.received++;
+    if(outcome === 'dropped-throttle') clickLogStats.dropped++;
+    else if(outcome === 'landed') clickLogStats.landed++;
+    if(!clickLogEl){
+      clickLogEl = document.createElement('div');
+      clickLogEl.style.cssText = 'position:fixed;top:4px;left:4px;z-index:9999;background:rgba(0,0,0,0.75);color:#9f9;font:10px monospace;padding:4px 7px;border-radius:4px;pointer-events:none;white-space:pre;';
+      document.body.appendChild(clickLogEl);
+    }
+    clickLogEl.textContent = 'clicks '+clickLogStats.received+' | landed '+clickLogStats.landed+' | dropped '+clickLogStats.dropped+' | last gap '+Math.round(gapMs)+'ms';
+  }
   function onStageClick(ev){
     if(ev && ev.isTrusted === false) return;
     var now = performance.now();
-    if(now - lastClickAt < MIN_CLICK_INTERVAL_MS) return;
+    var gap = now - lastClickAt;
+    if(gap < MIN_CLICK_INTERVAL_MS){ logClick('dropped-throttle', gap); return; }
     lastClickAt = now;
     var target = activeTarget();
-    if(!target || target.hp<=0) return;
+    if(!target || target.hp<=0){ logClick('no-target', gap); return; }
+    logClick('landed', gap);
     var isCrit = Math.random() < critChance();
     var dmg = clickDamage() * (isCrit ? critMultVal() : 1);
     dmg = Math.round(dmg*10)/10;
@@ -357,6 +387,11 @@
   // makes every click lethal, for fast testing/design review. Never a
   // per-player toggle, same as BESTIARY=true above.
   var godMode = false;
+  // Set from GET /api/config at boot -- a LOGGING=true env var turns on a
+  // tiny on-screen click-timing readout (see logClick below), for chasing
+  // down "clicks don't feel instant" complaints on a device with no
+  // attached devtools (a phone, mainly).
+  var loggingEnabled = false;
   function renderBestiary(){
     var keys = bestiaryKeys();
     var found = keys.filter(function(k){ return state.defeated[k]; }).length;
