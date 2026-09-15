@@ -88,4 +88,56 @@ describe('damage-modifier formulas', () => {
     g.dealDamage(100, false);
     assert.equal(before_ - g.state.enemy.hp, 50, '100 damage at 50% shield reduction should land 50');
   });
+
+  test('dealDamage returns the overkill amount on a kill, 0 otherwise', () => {
+    g.state.enemy.hp = 100; g.state.enemy.maxHp = 100;
+    assert.equal(g.dealDamage(40, false), 0, 'a non-lethal hit has no overkill');
+    assert.equal(g.dealDamage(1000, false), 940, '60 hp remained, so a 1000-damage hit should overkill by 940');
+  });
+});
+
+describe('overkill bonus (progression from excess damage)', () => {
+  let dom, g;
+
+  before(async () => {
+    dom = await bootGame();
+    g = dom.window.__game;
+  });
+
+  after(() => dom.window.close());
+
+  beforeEach(() => { g.spawnEnemy(false); while (g.state.enemy.isBoss) g.spawnEnemy(false); });
+
+  test('excess damage past a kill converts into extra kills against the same level pool', () => {
+    var e = g.state.enemy;
+    e.maxHp = 100; e.hp = 100;
+    var killsBefore = g.state.totalKills, goldBefore = g.state.gold;
+    g.applyOverkillBonus(550); // one kill's worth already happened elsewhere; this is the leftover
+    assert.equal(g.state.totalKills, killsBefore + 5, '550 excess hp at 100 maxHp each should award 5 bonus kills');
+    assert.ok(g.state.gold > goldBefore, 'bonus kills must pay out gold same as a normal kill');
+  });
+
+  test('the bonus is capped so one hit cannot clear an entire realm at once', () => {
+    var e = g.state.enemy;
+    e.maxHp = 10; e.hp = 10;
+    var killsBefore = g.state.totalKills;
+    g.applyOverkillBonus(100000); // absurd overkill relative to a 10-hp enemy
+    assert.equal(g.state.totalKills, killsBefore + 30, 'bonus kills must be capped, not unbounded');
+  });
+
+  test('bosses never grant the overkill bonus', () => {
+    g.spawnEnemy(true);
+    var e = g.state.enemy;
+    e.maxHp = 100; e.hp = 100;
+    var killsBefore = g.state.totalKills;
+    g.applyOverkillBonus(5000);
+    assert.equal(g.state.totalKills, killsBefore, 'a boss kill must stay a one-at-a-time fight, no bonus chain');
+  });
+
+  test('zero or missing overkill is a no-op', () => {
+    var killsBefore = g.state.totalKills;
+    g.applyOverkillBonus(0);
+    g.applyOverkillBonus(undefined);
+    assert.equal(g.state.totalKills, killsBefore);
+  });
 });

@@ -22,6 +22,12 @@
   }
   *{box-sizing:border-box;}
   html,body{ height:100%; }
+  /* Every tap target skips the browser's double-tap-to-zoom detection --
+     without this, a div-based target like .stage can fire a second,
+     synthetic "compatibility" click a few ms after the real one, which
+     reads as clicks landing far faster than any human taps (and burns
+     them against the anti-autoclicker throttle in onStageClick). */
+  button, .stage{ touch-action: manipulation; }
   body{
     background: radial-gradient(ellipse at 50% -10%, #2a1210 0%, var(--ink) 55%, #050403 100%);
     color: var(--parchment);

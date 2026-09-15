@@ -76,10 +76,46 @@
       }
     }
     if(target.hp <= 0){
+      var overkill = !isAdd && -target.hp > 0 ? -target.hp : 0;
       if(isAdd) clearAdd(); else killEnemy();
+      return overkill;
     } else {
       renderEnemy(false);
+      return 0;
     }
+  }
+
+  // Being strongly overpowered for the current realm used to just mean
+  // "hits do way more than needed" -- auto-DPS and clicks still only ever
+  // finish one kill at a time, so the excess damage was pure waste and
+  // progression crawled at the same pace regardless of how strong you'd
+  // gotten. This converts leftover damage from a one-hit kill into extra
+  // kills against the same level's pool, so a big power spike (an upgrade
+  // spree, a login-streak windfall) translates into visibly faster
+  // progress instead of nothing changing except the numbers on screen.
+  // Capped so one hit can't clear an entire realm's boss requirement
+  // outright, and skipped for bosses, which stay one-at-a-time fights.
+  var MAX_OVERKILL_BONUS_KILLS = 30;
+  function applyOverkillBonus(overkill){
+    if(!overkill || overkill <= 0) return;
+    var e = state.enemy;
+    if(!e || e.isBoss || !e.maxHp) return;
+    var bonusKills = Math.min(MAX_OVERKILL_BONUS_KILLS, Math.floor(overkill / e.maxHp));
+    if(bonusKills < 1) return;
+    var level = currentLevel();
+    var bonusGold = 0;
+    for(var i=0;i<bonusKills;i++){
+      var reward = Math.round(e.goldReward * goldMultVal()) + goldFlatBonus();
+      bonusGold += reward;
+      state.gold += reward;
+      state.totalGoldRun += reward;
+      state.totalKills++;
+      state.killsInLevel++;
+      if(state.killsInLevel % level.killsPerBoss === 0) state.bossReady = true;
+    }
+    toast('Overkill! Also felled '+bonusKills+' more '+(bonusKills===1?'foe':'foes')+' (+'+fmt(bonusGold)+'g)');
+    renderStats();
+    renderLevelChrome();
   }
 
   function killEnemy(){
@@ -230,7 +266,7 @@
     // standing guard, if there is one, not the boss behind it
     var hitEl = state.addEnemy ? el.addSpriteWrap : el.spriteWrap;
     hitEl.classList.remove('hit'); void hitEl.offsetWidth; hitEl.classList.add('hit');
-    dealDamage(dmg, isCrit);
+    applyOverkillBonus(dealDamage(dmg, isCrit));
   }
 
   function buyUpgrade(u){
@@ -392,24 +428,47 @@
   // down "clicks don't feel instant" complaints on a device with no
   // attached devtools (a phone, mainly).
   var loggingEnabled = false;
+  // Both grids below list a fixed, static set of entries (every MONSTERS
+  // key / every ACHIEVEMENTS entry) -- only which ones are "known" ever
+  // changes at runtime. renderAll() calls both on every single kill (every
+  // auto-DPS tick that lands one), so rebuilding ~90+ tiles' worth of SVG
+  // markup from scratch every time was a real cost paid constantly even
+  // while neither panel was open. Build once, then only touch a tile when
+  // its own known/locked state actually flips.
+  function bestiaryTileHtml(key, known){
+    var mon = MONSTERS[key];
+    var info = BESTIARY[key];
+    return '<div class="bestiary-sprite">'+svgFromGrid(mon.rows, mon.palette)+'</div>'+
+      '<div class="bestiary-name">'+(known ? titleCase(key) : '???')+'</div>'+
+      (known && info ? '<div class="bestiary-lore">'+info.lore+'</div><div class="bestiary-power"><b>Power:</b> '+info.power+'</div>' : '');
+  }
   function renderBestiary(){
     var keys = bestiaryKeys();
     var found = keys.filter(function(k){ return state.defeated[k]; }).length;
     [el.bestiaryCount, el.bestiaryModalCount].forEach(function(n){ n.textContent = found; });
     [el.bestiaryTotal, el.bestiaryModalTotal].forEach(function(n){ n.textContent = keys.length; });
     var revealAll = bestiaryShowAll;
-    el.bestiaryGrid.innerHTML = '';
-    keys.forEach(function(key){
-      var mon = MONSTERS[key];
-      var info = BESTIARY[key];
+    if(el.bestiaryGrid.children.length !== keys.length){
+      el.bestiaryGrid.innerHTML = '';
+      keys.forEach(function(key){
+        var known = revealAll || !!state.defeated[key];
+        var tile = document.createElement('div');
+        tile.className = 'bestiary-tile' + (known ? '' : ' locked');
+        tile.dataset.key = key;
+        tile.dataset.known = known ? '1' : '0';
+        tile.innerHTML = bestiaryTileHtml(key, known);
+        el.bestiaryGrid.appendChild(tile);
+      });
+      return;
+    }
+    var rows = el.bestiaryGrid.children;
+    keys.forEach(function(key, i){
       var known = revealAll || !!state.defeated[key];
-      var tile = document.createElement('div');
-      tile.className = 'bestiary-tile' + (known ? '' : ' locked');
-      tile.innerHTML =
-        '<div class="bestiary-sprite">'+svgFromGrid(mon.rows, mon.palette)+'</div>'+
-        '<div class="bestiary-name">'+(known ? titleCase(key) : '???')+'</div>'+
-        (known && info ? '<div class="bestiary-lore">'+info.lore+'</div><div class="bestiary-power"><b>Power:</b> '+info.power+'</div>' : '');
-      el.bestiaryGrid.appendChild(tile);
+      var tile = rows[i];
+      if(tile.dataset.known === (known ? '1' : '0')) return;
+      tile.dataset.known = known ? '1' : '0';
+      tile.classList.toggle('locked', !known);
+      tile.innerHTML = bestiaryTileHtml(key, known);
     });
   }
 
@@ -417,16 +476,28 @@
     var earned = ACHIEVEMENTS.filter(function(a){ return state.achievements[a.id]; }).length;
     [el.achvCount, el.achvModalCount].forEach(function(n){ n.textContent = earned; });
     [el.achvTotal, el.achvModalTotal].forEach(function(n){ n.textContent = ACHIEVEMENTS.length; });
-    el.achvGrid.innerHTML = '';
-    ACHIEVEMENTS.forEach(function(a){
+    if(el.achvGrid.children.length !== ACHIEVEMENTS.length){
+      el.achvGrid.innerHTML = '';
+      ACHIEVEMENTS.forEach(function(a){
+        var known = !!state.achievements[a.id];
+        var tile = document.createElement('div');
+        tile.className = 'bestiary-tile' + (known ? '' : ' locked');
+        tile.dataset.known = known ? '1' : '0';
+        tile.innerHTML =
+          '<div class="bestiary-sprite">'+MEDAL_ICON_SVG+'</div>'+
+          '<div class="bestiary-name">'+a.name+'</div>'+
+          '<div class="bestiary-lore">'+a.desc+'</div>';
+        el.achvGrid.appendChild(tile);
+      });
+      return;
+    }
+    var rows = el.achvGrid.children;
+    ACHIEVEMENTS.forEach(function(a, i){
       var known = !!state.achievements[a.id];
-      var tile = document.createElement('div');
-      tile.className = 'bestiary-tile' + (known ? '' : ' locked');
-      tile.innerHTML =
-        '<div class="bestiary-sprite">'+MEDAL_ICON_SVG+'</div>'+
-        '<div class="bestiary-name">'+a.name+'</div>'+
-        '<div class="bestiary-lore">'+a.desc+'</div>';
-      el.achvGrid.appendChild(tile);
+      var tile = rows[i];
+      if(tile.dataset.known === (known ? '1' : '0')) return;
+      tile.dataset.known = known ? '1' : '0';
+      tile.classList.toggle('locked', !known);
     });
   }
 
@@ -491,7 +562,7 @@
         var isCrit = Math.random() < critChance();
         var amount = dps * (isCrit ? critMultVal() : 1);
         amount = Math.round(amount*(TICK_MS/1000)*10)/10;
-        if(amount>0) dealDamage(amount, isCrit);
+        if(amount>0) applyOverkillBonus(dealDamage(amount, isCrit));
       }
     }
     // keep the shield badge/glow accurate even between damage events

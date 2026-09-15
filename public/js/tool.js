@@ -723,7 +723,7 @@
       }
     }
     if(samples.length < 4){ status('Reference image is not aligned over the grid -- position it first.'); return; }
-    var k = Math.max(2, Math.min(32, parseInt(el.autoTraceColors.value, 10) || 16));
+    var k = Math.max(2, Math.min(62, parseInt(el.autoTraceColors.value, 10) || 16));
     var result = kmeansQuantize(samples, k);
 
     // whichever cluster the most border pixels land in is treated as the

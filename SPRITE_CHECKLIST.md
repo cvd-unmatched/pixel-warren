@@ -83,7 +83,7 @@ Legend: [x] = new traced sprite, [ ] = still old art
 ## Storm Reaches (boss: Storm Herald)
 - [x] stormHerald (boss)
 - [x] stormsprite
-- [x] cloudserpent
+- [ ] cloudserpent
 - [x] thunderhawk
 - [x] galewisp
 - [x] lightningelemental
