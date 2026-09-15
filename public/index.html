@@ -33,6 +33,11 @@
         <span class="icon" id="tokenIcon"></span>
         <div><b id="tokenCount">0</b><small>Tokens</small></div>
       </div>
+      <div class="currency" id="arcadeCurrency" tabindex="0"
+           data-tooltip="Dropped by realm bosses. Spend one to play Warren Chase.">
+        <span class="icon" id="arcadeIcon"></span>
+        <div><b id="arcadeCount">0</b><small>Arcade</small></div>
+      </div>
       <div class="save-dot" id="saveDot" title="Saved"></div>
       <button class="account-btn" id="accountBtn">Sign In</button>
     </div>
@@ -139,6 +144,12 @@
         <span class="village-open-balance"><b id="achvCount">0</b><small style="font-weight:600;">/<span id="achvTotal">0</span></small></span>
       </button>
 
+      <button class="village-open-btn" id="arcadeOpenBtn">
+        <span class="u-icon" id="arcadeOpenIcon"></span>
+        <span class="village-open-text">Warren Chase<small>spend an Arcade Token, dodge the ghosts, clear the dots</small></span>
+        <span class="village-open-balance"><span class="icon" id="arcadeOpenTokenIcon"></span><b id="arcadeOpenCount">0</b></span>
+      </button>
+
       <div class="footer-row">
         <span class="credit">progress saves automatically</span>
         <button class="reset-btn" id="resetBtn">reset save</button>
@@ -211,6 +222,33 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="arcadeOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 style="margin:0;">Warren Chase <span class="village-balance"><span class="icon" id="arcadeModalTokenIcon"></span><b id="arcadeModalCount">0</b> tokens</span></h2>
+        <button class="modal-close" id="arcadeCloseBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="village-blurb">Spend an Arcade Token to run the maze. Clear every crumb before the wardens catch you for a gold reward scaled to your realm; get caught and the token's still spent, but you keep whatever you already cleared.</p>
+        <div class="arcade-wrap">
+          <canvas id="arcadeCanvas" width="340" height="260"></canvas>
+          <div class="arcade-hud">
+            <span id="arcadeHudCrumbs">0 / 0 crumbs</span>
+            <span id="arcadeHudMsg"></span>
+          </div>
+          <button class="ascend-btn" id="arcadePlayBtn">Play (1 token)</button>
+          <div class="arcade-dpad" id="arcadeDpad">
+            <button type="button" class="arcade-dpad-btn arcade-dpad-up" data-dir="up" aria-label="Up">&uarr;</button>
+            <button type="button" class="arcade-dpad-btn arcade-dpad-left" data-dir="left" aria-label="Left">&larr;</button>
+            <button type="button" class="arcade-dpad-btn arcade-dpad-down" data-dir="down" aria-label="Down">&darr;</button>
+            <button type="button" class="arcade-dpad-btn arcade-dpad-right" data-dir="right" aria-label="Right">&rarr;</button>
+          </div>
+          <p class="arcade-hint">arrow keys / WASD, or the pad above</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="accountOverlay">
     <div class="modal-card">
       <div class="modal-head">
@@ -247,4 +285,5 @@
 <script src="js/state.js"></script>
 <script src="js/render.js"></script>
 <script src="js/combat.js"></script>
+<script src="js/arcade.js"></script>
 <script src="js/ui.js"></script>

@@ -8155,6 +8155,10 @@ sprig:{
     ["..oooo..",".owwwwo.",".owpwpo.",".owwwwo.",".owpwpo.",".owwwwo.","..oooo..","........"],
     { o:'#161210', w:'#5c1414', p:'#0c0a09' }
   );
+  var ARCADE_ICON_SVG = svgFromGrid(
+    ["..oooo..",".oggggo.","oggogogo","oggggggo","oggggggo","oggggggo","oggggggo","o.g.g.o."],
+    { o:'#161210', g:'#bfe8ff' }
+  );
   // A tiny cosmetic escort that only ever orbits Matti -- no gameplay
   // effect, just a visual tell that this fight is the rare one.
   var ANGEL_ICON_SVG = svgFromGrid(
@@ -8169,6 +8173,10 @@ sprig:{
   document.getElementById('villageModalBlessIcon').outerHTML = BLESS_ICON_SVG.replace('<svg ', '<svg class="icon" id="villageModalBlessIcon" ');
   document.getElementById('gambleIcon').innerHTML = DICE_ICON_SVG;
   document.getElementById('tokenIcon').innerHTML = DICE_ICON_SVG;
+  document.getElementById('arcadeIcon').innerHTML = ARCADE_ICON_SVG;
+  document.getElementById('arcadeOpenIcon').innerHTML = ARCADE_ICON_SVG;
+  document.getElementById('arcadeOpenTokenIcon').innerHTML = ARCADE_ICON_SVG;
+  document.getElementById('arcadeModalTokenIcon').innerHTML = ARCADE_ICON_SVG;
   document.getElementById('villageOpenIcon').innerHTML = VILLAGE_ICON_SVG.watchtower;
   document.getElementById('bestiaryOpenIcon').innerHTML = svgFromGrid(MONSTERS.skeleton.rows, MONSTERS.skeleton.palette);
   document.getElementById('brandMark').outerHTML = svgFromGrid(BRAND_ICON.rows, BRAND_ICON.palette).replace('<svg ', '<svg class="brand-mark" id="brandMark" ');

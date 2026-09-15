@@ -10,7 +10,7 @@ const path = require('path');
 const { JSDOM } = require('jsdom');
 
 const PUBLIC_DIR = path.join(__dirname, '..', '..', 'public');
-const SCRIPT_ORDER = ['sprites.js', 'content.js', 'state.js', 'render.js', 'combat.js', 'ui.js'];
+const SCRIPT_ORDER = ['sprites.js', 'content.js', 'state.js', 'render.js', 'combat.js', 'arcade.js', 'ui.js'];
 
 // Boot completes asynchronously (persistLoad/config are promise chains);
 // this is long enough for those to settle without slowing the suite down.
@@ -80,7 +80,10 @@ async function bootGame(){
     '  triggerWebPull: triggerWebPull, triggerMathGate: triggerMathGate, answerMathGate: answerMathGate,',
     '  triggerHydraWave: triggerHydraWave, spawnHydraHead: spawnHydraHead, clearHydraHead: clearHydraHead,',
     '  startBossAbilities: startBossAbilities, fleeBoss: fleeBoss,',
-    '  get lastBossEnterAt(){ return lastBossEnterAt; }, set lastBossEnterAt(v){ lastBossEnterAt = v; }',
+    '  get lastBossEnterAt(){ return lastBossEnterAt; }, set lastBossEnterAt(v){ lastBossEnterAt = v; },',
+    '  openArcade: openArcade, closeArcade: closeArcade, arcadeStart: arcadeStart,',
+    '  arcadeTick: arcadeTick, arcadeGhostTick: arcadeGhostTick, arcadeSetDir: arcadeSetDir,',
+    '  ARCADE_MAZE: ARCADE_MAZE, get arcadeState(){ return arcadeState; }',
     '};'
   ].join('\n');
 

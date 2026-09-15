@@ -40,6 +40,11 @@
   el.achvOverlay.addEventListener('click', function(ev){
     if(ev.target === el.achvOverlay) closeAchievements();
   });
+  el.arcadeOpenBtn.addEventListener('click', openArcade);
+  el.arcadeCloseBtn.addEventListener('click', closeArcade);
+  el.arcadeOverlay.addEventListener('click', function(ev){
+    if(ev.target === el.arcadeOverlay) closeArcade();
+  });
 
   /* ---------------- Account (optional MariaDB-backed login) ----------------
      Guest play never depends on this: with no account, saves keep going

@@ -108,7 +108,18 @@
     authSubmitBtn: document.getElementById('authSubmitBtn'),
     authError: document.getElementById('authError'),
     logoutBtn: document.getElementById('logoutBtn'),
-    leaderboardList: document.getElementById('leaderboardList')
+    leaderboardList: document.getElementById('leaderboardList'),
+    arcadeCount: document.getElementById('arcadeCount'),
+    arcadeOpenCount: document.getElementById('arcadeOpenCount'),
+    arcadeModalCount: document.getElementById('arcadeModalCount'),
+    arcadeOverlay: document.getElementById('arcadeOverlay'),
+    arcadeOpenBtn: document.getElementById('arcadeOpenBtn'),
+    arcadeCloseBtn: document.getElementById('arcadeCloseBtn'),
+    arcadeCanvas: document.getElementById('arcadeCanvas'),
+    arcadePlayBtn: document.getElementById('arcadePlayBtn'),
+    arcadeHudCrumbs: document.getElementById('arcadeHudCrumbs'),
+    arcadeHudMsg: document.getElementById('arcadeHudMsg'),
+    arcadeDpad: document.getElementById('arcadeDpad')
   };
 
   var lastLevelRendered = -1;
@@ -285,6 +296,9 @@
     if(!goldTweenBusy) setGoldDisplayInstant(state.gold);
     el.blessCount.textContent = state.blessings;
     el.tokenCount.textContent = state.gambleTokens;
+    el.arcadeCount.textContent = state.arcadeTokens;
+    el.arcadeOpenCount.textContent = state.arcadeTokens;
+    el.arcadeModalCount.textContent = state.arcadeTokens;
     el.statClick.textContent = fmt(clickDamage());
     el.statDps.textContent = fmt(dpsValue());
     el.statCrit.textContent = Math.round(critChance()*100)+'%';

@@ -160,9 +160,12 @@
         }
       } else {
         // Only the earlier realm bosses drop a Gambling Den token -- the
-        // final boss already feeds the Ascend track instead.
+        // final boss already feeds the Ascend track instead. Every realm
+        // boss also drops an Arcade Token for the Warren Chase minigame,
+        // a second reason to want boss kills beyond the roulette token.
         state.gambleTokens++;
-        toast(e.name+' dropped a Gambling Token!');
+        state.arcadeTokens++;
+        toast(e.name+' dropped a Gambling Token and an Arcade Token!');
       }
       state.bossReady = false;
       state.killsInLevel = 0;
@@ -227,11 +230,18 @@
   // (isTrusted is false for those) and cap how often a real click can
   // register, so an external clicker can't turn "click damage" into
   // unlimited damage-per-second.
+  //
+  // 40ms held up fine in theory but not in practice -- confirmed via the
+  // LOGGING overlay that real, enthusiastic human clicking regularly lands
+  // gaps in the 20-30ms range (bursts of alternating-finger mashing, not
+  // sustained), and every one of those was getting silently dropped with
+  // no floater and no hit-shake, which read as "clicking does nothing."
+  // 12ms (an 80+ clicks/sec sustained rate) is still far beyond anything a
+  // human can keep up, while a real script-driven autoclicker gains
+  // essentially nothing worth cheating for from the tiny bit of headroom
+  // this gives up.
   var lastClickAt = 0;
-  // Loose enough that a genuinely fast human clicker (even rapid-fire
-  // "jitter clicking") never notices it -- a real script-driven autoclicker
-  // still runs well past this, so the anti-cheat intent holds either way.
-  var MIN_CLICK_INTERVAL_MS = 40;
+  var MIN_CLICK_INTERVAL_MS = 12;
   // A tiny always-current readout of click timing, only built when
   // LOGGING=true asks for it (see loggingEnabled above) -- answers "are my
   // clicks all landing, and how far apart are they really" on a device
