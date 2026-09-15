@@ -161,11 +161,11 @@
       } else {
         // Only the earlier realm bosses drop a Gambling Den token -- the
         // final boss already feeds the Ascend track instead. Every realm
-        // boss also drops an Arcade Token for the Warren Chase minigame,
+        // boss also drops a Chase Token for the Warren Chase minigame,
         // a second reason to want boss kills beyond the roulette token.
         state.gambleTokens++;
-        state.arcadeTokens++;
-        toast(e.name+' dropped a Gambling Token and an Arcade Token!');
+        state.chaseTokens++;
+        toast(e.name+' dropped a Gambling Token and a Chase Token!');
       }
       state.bossReady = false;
       state.killsInLevel = 0;

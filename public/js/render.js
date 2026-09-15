@@ -296,9 +296,9 @@
     if(!goldTweenBusy) setGoldDisplayInstant(state.gold);
     el.blessCount.textContent = state.blessings;
     el.tokenCount.textContent = state.gambleTokens;
-    el.arcadeCount.textContent = state.arcadeTokens;
-    el.arcadeOpenCount.textContent = state.arcadeTokens;
-    el.arcadeModalCount.textContent = state.arcadeTokens;
+    el.arcadeCount.textContent = state.chaseTokens;
+    el.arcadeOpenCount.textContent = state.chaseTokens;
+    el.arcadeModalCount.textContent = state.chaseTokens;
     el.statClick.textContent = fmt(clickDamage());
     el.statDps.textContent = fmt(dpsValue());
     el.statCrit.textContent = Math.round(critChance()*100)+'%';

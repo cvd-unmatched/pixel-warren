@@ -1,3 +1,5 @@
+<!doctype html>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Pixel Warren</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Crect width='12' height='12' fill='%2314401f'/%3E%3Crect x='3' y='2' width='6' height='1' fill='%2314401f'/%3E%3Crect x='2' y='3' width='8' height='7' fill='%233fa34d'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%238fe08a'/%3E%3Crect x='8' y='4' width='1' height='1' fill='%238fe08a'/%3E%3Crect x='3' y='6' width='1' height='1' fill='%23fff'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%23111'/%3E%3Crect x='7' y='6' width='1' height='1' fill='%23fff'/%3E%3Crect x='8' y='6' width='1' height='1' fill='%23111'/%3E%3C/svg%3E">
@@ -36,7 +38,7 @@
       <div class="currency" id="arcadeCurrency" tabindex="0"
            data-tooltip="Dropped by realm bosses. Spend one to play Warren Chase.">
         <span class="icon" id="arcadeIcon"></span>
-        <div><b id="arcadeCount">0</b><small>Arcade</small></div>
+        <div><b id="arcadeCount">0</b><small>Chase</small></div>
       </div>
       <div class="save-dot" id="saveDot" title="Saved"></div>
       <button class="account-btn" id="accountBtn">Sign In</button>
@@ -146,7 +148,7 @@
 
       <button class="village-open-btn" id="arcadeOpenBtn">
         <span class="u-icon" id="arcadeOpenIcon"></span>
-        <span class="village-open-text">Warren Chase<small>spend an Arcade Token, dodge the ghosts, clear the dots</small></span>
+        <span class="village-open-text">Warren Chase<small>spend a Chase Token, dodge the wardens, clear the dots</small></span>
         <span class="village-open-balance"><span class="icon" id="arcadeOpenTokenIcon"></span><b id="arcadeOpenCount">0</b></span>
       </button>
 
@@ -229,7 +231,7 @@
         <button class="modal-close" id="arcadeCloseBtn" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="village-blurb">Spend an Arcade Token to run the maze. Clear every crumb before the wardens catch you for a gold reward scaled to your realm; get caught and the token's still spent, but you keep whatever you already cleared.</p>
+        <p class="village-blurb">Spend a Chase Token to run the maze. Clear every crumb before the wardens catch you for a gold reward scaled to your realm; get caught and the token's still spent, but you keep whatever you already cleared.</p>
         <div class="arcade-wrap">
           <canvas id="arcadeCanvas" width="340" height="260"></canvas>
           <div class="arcade-hud">

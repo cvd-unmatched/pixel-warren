@@ -1,6 +1,6 @@
 "use strict";
 /* ---------------- Warren Chase: a small Pac-Man-style minigame ----------
-   Spend an Arcade Token (dropped by realm bosses) to run a fixed maze,
+   Spend a Chase Token (dropped by realm bosses) to run a fixed maze,
    grid-stepped rather than pixel-smooth so the rules stay simple: clear
    every crumb before either ghost catches you. Reward scales off the
    current realm's baseGold so it stays relevant at any point in a run.
@@ -145,7 +145,7 @@ function arcadeFinish(won){
   renderStats();
   save();
   el.arcadeHudMsg.textContent = won ? 'Cleared!' : 'Caught!';
-  el.arcadePlayBtn.disabled = state.arcadeTokens < 1;
+  el.arcadePlayBtn.disabled = state.chaseTokens < 1;
   el.arcadePlayBtn.textContent = 'Play again (1 token)';
 }
 
@@ -188,8 +188,8 @@ function arcadeRender(){
 }
 
 function arcadeStart(){
-  if(state.arcadeTokens < 1) return;
-  state.arcadeTokens--;
+  if(state.chaseTokens < 1) return;
+  state.chaseTokens--;
   renderStats();
   save();
   arcadeState = arcadeBuildState();
@@ -209,7 +209,7 @@ function openArcade(){
   if(!arcadeCtx) arcadeCtx = el.arcadeCanvas.getContext('2d');
   arcadeStopTimers();
   arcadeState = arcadeBuildState();
-  el.arcadePlayBtn.disabled = state.arcadeTokens < 1;
+  el.arcadePlayBtn.disabled = state.chaseTokens < 1;
   el.arcadePlayBtn.textContent = 'Play (1 token)';
   el.arcadeHudMsg.textContent = '';
   arcadeRender();

@@ -67,7 +67,7 @@
   function freshState(){
     return {
       gold:0, blessings:0, totalGoldRun:0,
-      levelIndex:0, killsInLevel:0, totalKills:0, bossReady:false, dragonKills:0, gambleTokens:0, arcadeTokens:0,
+      levelIndex:0, killsInLevel:0, totalKills:0, bossReady:false, dragonKills:0, gambleTokens:0, chaseTokens:0,
       upgradeLevels: defaultLevels(UPGRADES),
       villageLevels: defaultLevels(VILLAGE),
       defeated:{},
@@ -112,7 +112,7 @@
     state.bossReady = !!d.bossReady;
     state.dragonKills = d.dragonKills||0;
     state.gambleTokens = d.gambleTokens||0;
-    state.arcadeTokens = d.arcadeTokens||0;
+    state.chaseTokens = d.chaseTokens||0;
     state.upgradeLevels = d.upgradeLevels || state.upgradeLevels;
     state.villageLevels = d.villageLevels || state.villageLevels;
     state.defeated = d.defeated || state.defeated;
@@ -131,7 +131,7 @@
     return {
       gold:state.gold, blessings:state.blessings, totalGoldRun:state.totalGoldRun,
       levelIndex:state.levelIndex, killsInLevel:state.killsInLevel, totalKills:state.totalKills, bossReady:state.bossReady,
-      dragonKills:state.dragonKills, gambleTokens:state.gambleTokens, arcadeTokens:state.arcadeTokens,
+      dragonKills:state.dragonKills, gambleTokens:state.gambleTokens, chaseTokens:state.chaseTokens,
       upgradeLevels:state.upgradeLevels, villageLevels:state.villageLevels, defeated:state.defeated, achievements:state.achievements, enemy:state.enemy,
       loginStreak:state.loginStreak, lastLoginDate:state.lastLoginDate,
       finalBeaten:finalBeaten, savedAt:Date.now()

@@ -20,7 +20,7 @@ describe('Warren Chase arcade minigame', () => {
   after(() => dom.window.close());
 
   beforeEach(() => {
-    g.state.arcadeTokens = 3;
+    g.state.chaseTokens = 3;
     g.openArcade();
   });
 
@@ -32,14 +32,14 @@ describe('Warren Chase arcade minigame', () => {
   });
 
   test('starting a run costs exactly one token, and refuses to start with none', () => {
-    g.state.arcadeTokens = 1;
+    g.state.chaseTokens = 1;
     g.openArcade();
     g.arcadeStart();
-    assert.equal(g.state.arcadeTokens, 0, 'a run must cost exactly one token');
+    assert.equal(g.state.chaseTokens, 0, 'a run must cost exactly one token');
     assert.ok(g.arcadeState && !g.arcadeState.over, 'a run should actually be in progress');
 
     g.arcadeStart(); // no tokens left
-    assert.equal(g.state.arcadeTokens, 0, 'starting with zero tokens must not go negative or silently charge anyway');
+    assert.equal(g.state.chaseTokens, 0, 'starting with zero tokens must not go negative or silently charge anyway');
   });
 
   test('the player cannot move through a wall', () => {
