@@ -36,7 +36,7 @@ Legend: [x] = new traced sprite, [ ] = still old art
 - [x] quartzcrab
 
 ## Underdark Depths (boss: Abyssal Warden)
-- [ ] abyssalWarden (boss)
+- [x] abyssalWarden (boss)
 - [x] deepspider
 - [x] gloomwraith
 - [x] fungalhorror
@@ -83,22 +83,22 @@ Legend: [x] = new traced sprite, [ ] = still old art
 ## Storm Reaches (boss: Storm Herald)
 - [x] stormHerald (boss)
 - [x] stormsprite
-- [ ] cloudserpent
+- [x] cloudserpent
 - [x] thunderhawk
 - [x] galewisp
 - [x] lightningelemental
-- [ ] skyjelly
+- [x] skyjelly
 
 ## Mythic Depths (boss: Hydra)
-- [ ] hydra (boss)
-- [ ] hydraHead
-- [ ] medusa
-- [ ] cerberus
-- [ ] scylla
-- [ ] minotaur
-- [ ] demon
+- [x] hydra (boss)
+- [x] hydraHead
+- [x] medusa
+- [x] cerberus
+- [x] scylla
+- [x] minotaur
+- [x] demon
 - [ ] cyclops
-- [ ] sphinx
+- [x] sphinx
 
 ## Dragon's Peak (boss: Ancient Dragon)
 - [x] dragon (boss)
@@ -106,20 +106,19 @@ Legend: [x] = new traced sprite, [ ] = still old art
 - [x] dragonStorm (variant)
 - [x] skeleton
 - [x] wyvern
-- [ ] boneknight
-- [ ] wyrmling
-- [ ] frostharpy
-- [ ] obsidianwyvern
+- [x] boneknight
+- [x] wyrmling
+- [x] frostharpy
+- [x] obsidianwyvern
 
 ## Special / non-realm
 - [x] matti (kept at old 12x12 design intentionally)
 - [x] julia (kept at old 12x12 design intentionally)
-- [x] delangelo (joke monster, old 20x20 art, kept intentionally)
+- [x] delangelo (joke monster, still a car on purpose, now traced at full resolution like everything else)
 
 ---
 
-**Totals: 72 traced / 87 total.**
+**Totals: 87 traced / 88 total.** Only cyclops is left.
 
-## Flagged for redo (not just "not yet traced", explicitly disliked)
-- [ ] medusa, user unhappy with current static trace, needs a new pass
-- [ ] hydra, main body sprite needs a redo (current one reads badly); escalating-heads power itself confirmed working correctly (was a /monsters simulator bug, now fixed)
+## Redone this pass
+- hydra, medusa, cloudserpent, goblin, and delangelo were all re-traced from new reference art (monsters9.png), replacing the earlier versions.
