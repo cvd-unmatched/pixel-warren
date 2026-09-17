@@ -457,7 +457,7 @@
   function bestiaryTileHtml(key, known){
     var mon = MONSTERS[key];
     var info = BESTIARY[key];
-    return '<div class="bestiary-sprite">'+svgFromGrid(mon.rows, mon.palette)+'</div>'+
+    return '<div class="bestiary-sprite"><img src="'+spriteImg(mon.rows, mon.palette, key)+'" alt=""></div>'+
       '<div class="bestiary-name">'+(known ? titleCase(key) : '???')+'</div>'+
       (known && info ? '<div class="bestiary-lore">'+info.lore+'</div><div class="bestiary-power"><b>Power:</b> '+info.power+'</div>' : '');
   }

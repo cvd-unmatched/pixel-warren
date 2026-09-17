@@ -218,6 +218,23 @@ describe('bestiary/achievements lazy rendering', () => {
     assert.equal(g.el.bestiaryGrid.children.length, g.bestiaryKeys().length, 'an already-open Bestiary must not get cleared by a background renderAll()');
   });
 
+  test('Bestiary tiles render sprites as a single cached image, not hundreds of inline SVG rects', () => {
+    // Building the grid only on open (rather than on every renderAll())
+    // fixed the constant-rebuild version of the DOM-bloat bug, but the grid
+    // is deliberately never torn back down (see the comment above), so a
+    // single visit to the Bestiary still left ~87 monsters' worth of inline
+    // SVG -- each easily 1000-2000+ <rect> elements once quantized from
+    // real reference art -- sitting in the page for the rest of the
+    // session. That's a quarter-million-plus nodes from one click, which is
+    // exactly the same class of slowdown reported as "lags after opening
+    // the Bestiary". Sprites must rasterize to a single cached <img> per
+    // tile instead, however detailed the source art is.
+    g.renderBestiary();
+    assert.equal(g.el.bestiaryGrid.querySelectorAll('rect').length, 0, 'Bestiary tiles must not contain inline SVG rects');
+    assert.equal(g.el.bestiaryGrid.querySelectorAll('.bestiary-sprite img').length, g.bestiaryKeys().length,
+      'every tile must render its sprite as a single cached <img> instead');
+  });
+
   test('the HP bar has no width transition, so it cannot lag behind rapid clicks', () => {
     // A CSS transition on .hp-fill's width meant every hit re-targeted an
     // in-flight 180ms animation before it finished, so clicking faster

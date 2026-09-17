@@ -23,6 +23,48 @@
     return out;
   }
 
+  // Rasterizes a grid to a small cached PNG data URL instead of inline SVG.
+  // One traced monster's rows/palette can expand to well over a thousand
+  // individual <rect> elements -- fine for the single sprite fighting on
+  // the arena stage, but the Bestiary grid draws every monster in the game
+  // at once, and inline SVG doesn't scale to that: 87 monsters at
+  // ~1000-2000+ rects each left a quarter-million-plus DOM nodes sitting in
+  // the page for the rest of the session after the first time anyone opened
+  // it, the same class of bug already fixed once for renderAll() rebuilding
+  // it on every kill (see bestiaryCounts()/renderBestiary() in combat.js).
+  // A rasterized <img> is one DOM node no matter how detailed the source
+  // art is, and image-rendering:pixelated keeps it looking identical to the
+  // SVG version when scaled up. jsdom has no canvas 2d support (getContext
+  // returns null), so this degrades to an empty (but harmless) src there --
+  // real browsers all support it.
+  var spriteRasterCache = {};
+  function spriteImg(rows, palette, cacheKey){
+    if(spriteRasterCache[cacheKey]) return spriteRasterCache[cacheKey];
+    var canvas = document.createElement('canvas');
+    canvas.width = rows[0].length;
+    canvas.height = rows.length;
+    var ctx = canvas.getContext('2d');
+    var url = '';
+    if(ctx){
+      for(var y=0;y<rows.length;y++){
+        var row = rows[y];
+        var x=0;
+        while(x<row.length){
+          var ch = row[x];
+          if(ch === '.'){ x++; continue; }
+          var run=1;
+          while(x+run<row.length && row[x+run]===ch) run++;
+          var color = palette[ch];
+          if(color){ ctx.fillStyle = color; ctx.fillRect(x, y, run, 1); }
+          x+=run;
+        }
+      }
+      url = canvas.toDataURL('image/png');
+    }
+    spriteRasterCache[cacheKey] = url;
+    return url;
+  }
+
   // Every monster/boss sprite lives here by key, shared across levels and
   // reusable as a boss's summoned add.
   var MONSTERS = {

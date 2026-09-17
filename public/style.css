@@ -403,8 +403,8 @@
   .bestiary-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(84px, 1fr)); gap:10px; }
   .bestiary-tile{ background:rgba(0,0,0,0.22); border:1px solid var(--line); border-radius:10px; padding:8px; display:flex; flex-direction:column; align-items:center; gap:5px; text-align:center; }
   .bestiary-sprite{ width:48px; height:48px; }
-  .bestiary-sprite svg{ width:100%; height:100%; image-rendering:pixelated; }
-  .bestiary-tile.locked .bestiary-sprite svg{ filter:brightness(0); opacity:0.7; }
+  .bestiary-sprite svg, .bestiary-sprite img{ width:100%; height:100%; image-rendering:pixelated; }
+  .bestiary-tile.locked .bestiary-sprite svg, .bestiary-tile.locked .bestiary-sprite img{ filter:brightness(0); opacity:0.7; }
   .bestiary-name{ font-size:10.5px; font-weight:800; }
   .bestiary-tile.locked .bestiary-name{ color:var(--parchment-dim); font-style:italic; }
   .bestiary-lore{ font-size:9.5px; color:var(--parchment-dim); line-height:1.3; }
