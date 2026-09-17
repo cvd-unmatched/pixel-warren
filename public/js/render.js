@@ -119,7 +119,19 @@
     arcadePlayBtn: document.getElementById('arcadePlayBtn'),
     arcadeHudCrumbs: document.getElementById('arcadeHudCrumbs'),
     arcadeHudMsg: document.getElementById('arcadeHudMsg'),
-    arcadeDpad: document.getElementById('arcadeDpad')
+    arcadeDpad: document.getElementById('arcadeDpad'),
+    arcadeSelect: document.getElementById('arcadeSelect'),
+    arcadeMazeView: document.getElementById('arcadeMazeView'),
+    arcadeWhackView: document.getElementById('arcadeWhackView'),
+    arcadePickMaze: document.getElementById('arcadePickMaze'),
+    arcadePickWhack: document.getElementById('arcadePickWhack'),
+    arcadeMazeBackBtn: document.getElementById('arcadeMazeBackBtn'),
+    arcadeWhackBackBtn: document.getElementById('arcadeWhackBackBtn'),
+    whackGrid: document.getElementById('whackGrid'),
+    arcadeWhackScore: document.getElementById('arcadeWhackScore'),
+    arcadeWhackTime: document.getElementById('arcadeWhackTime'),
+    arcadeWhackPlayBtn: document.getElementById('arcadeWhackPlayBtn'),
+    arcadeWhackMsg: document.getElementById('arcadeWhackMsg')
   };
 
   var lastLevelRendered = -1;

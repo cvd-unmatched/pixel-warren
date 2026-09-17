@@ -85,7 +85,12 @@ async function bootGame(){
     '  arcadeTick: arcadeTick, arcadeGhostTick: arcadeGhostTick, arcadeSetDir: arcadeSetDir,',
     '  ARCADE_MAZE: ARCADE_MAZE, get arcadeState(){ return arcadeState; },',
     '  renderBestiary: renderBestiary, renderAchievements: renderAchievements,',
-    '  bestiaryKeys: bestiaryKeys, ACHIEVEMENTS: ACHIEVEMENTS',
+    '  bestiaryKeys: bestiaryKeys, ACHIEVEMENTS: ACHIEVEMENTS,',
+    '  get arcadeView(){ return arcadeView; }, arcadeShowSelect: arcadeShowSelect,',
+    '  arcadeShowMaze: arcadeShowMaze, arcadeShowWhack: arcadeShowWhack,',
+    '  whackStart: whackStart, whackTick: whackTick, whackHitHole: whackHitHole,',
+    '  get whackState(){ return whackState; },',
+    '  WHACK_HOLES: WHACK_HOLES, WHACK_ROUND_TICKS: WHACK_ROUND_TICKS, WHACK_UP_TICKS: WHACK_UP_TICKS',
     '};'
   ].join('\n');
 

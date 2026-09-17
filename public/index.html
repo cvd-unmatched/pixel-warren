@@ -231,21 +231,51 @@
         <button class="modal-close" id="arcadeCloseBtn" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="village-blurb">Spend a Chase Token to run the maze. Clear every crumb before the wardens catch you for a gold reward scaled to your realm; get caught and the token's still spent, but you keep whatever you already cleared.</p>
-        <div class="arcade-wrap">
-          <canvas id="arcadeCanvas" width="340" height="260"></canvas>
-          <div class="arcade-hud">
-            <span id="arcadeHudCrumbs">0 / 0 crumbs</span>
-            <span id="arcadeHudMsg"></span>
+        <div id="arcadeSelect">
+          <p class="village-blurb">Spend a Chase Token on a game. Win or lose, you keep whatever gold you earned along the way -- only losing the token itself is the real cost.</p>
+          <button class="village-open-btn arcade-game-card" id="arcadePickMaze">
+            <span class="u-icon" id="arcadeMazeIcon"></span>
+            <span class="village-open-text">Maze Chase<small>dodge the wardens, clear every crumb</small></span>
+          </button>
+          <button class="village-open-btn arcade-game-card" id="arcadePickWhack">
+            <span class="u-icon" id="arcadeWhackIcon"></span>
+            <span class="village-open-text">Bog Whacker<small>whack monsters as they pop up, dodge the traps</small></span>
+          </button>
+        </div>
+
+        <div id="arcadeMazeView" hidden>
+          <button class="reset-btn arcade-back-btn" id="arcadeMazeBackBtn">&larr; Games</button>
+          <p class="village-blurb">Clear every crumb before the wardens catch you for a gold reward scaled to your realm; get caught and the token's still spent, but you keep whatever you already cleared.</p>
+          <div class="arcade-wrap">
+            <canvas id="arcadeCanvas" width="340" height="260"></canvas>
+            <div class="arcade-hud">
+              <span id="arcadeHudCrumbs">0 / 0 crumbs</span>
+              <span id="arcadeHudMsg"></span>
+            </div>
+            <button class="ascend-btn" id="arcadePlayBtn">Play (1 token)</button>
+            <div class="arcade-dpad" id="arcadeDpad">
+              <button type="button" class="arcade-dpad-btn arcade-dpad-up" data-dir="up" aria-label="Up">&uarr;</button>
+              <button type="button" class="arcade-dpad-btn arcade-dpad-left" data-dir="left" aria-label="Left">&larr;</button>
+              <button type="button" class="arcade-dpad-btn arcade-dpad-down" data-dir="down" aria-label="Down">&darr;</button>
+              <button type="button" class="arcade-dpad-btn arcade-dpad-right" data-dir="right" aria-label="Right">&rarr;</button>
+            </div>
+            <p class="arcade-hint">arrow keys / WASD, or the pad above</p>
           </div>
-          <button class="ascend-btn" id="arcadePlayBtn">Play (1 token)</button>
-          <div class="arcade-dpad" id="arcadeDpad">
-            <button type="button" class="arcade-dpad-btn arcade-dpad-up" data-dir="up" aria-label="Up">&uarr;</button>
-            <button type="button" class="arcade-dpad-btn arcade-dpad-left" data-dir="left" aria-label="Left">&larr;</button>
-            <button type="button" class="arcade-dpad-btn arcade-dpad-down" data-dir="down" aria-label="Down">&darr;</button>
-            <button type="button" class="arcade-dpad-btn arcade-dpad-right" data-dir="right" aria-label="Right">&rarr;</button>
+        </div>
+
+        <div id="arcadeWhackView" hidden>
+          <button class="reset-btn arcade-back-btn" id="arcadeWhackBackBtn">&larr; Games</button>
+          <p class="village-blurb">Whack monsters the instant they poke out of a hole. Leave the skulls alone -- whacking one ends the round early. Gold reward scales with how many you land.</p>
+          <div class="arcade-wrap">
+            <div class="arcade-hud">
+              <span id="arcadeWhackScore">Score: 0</span>
+              <span id="arcadeWhackTime">20s</span>
+              <span id="arcadeWhackMsg"></span>
+            </div>
+            <div class="whack-grid" id="whackGrid"></div>
+            <button class="ascend-btn" id="arcadeWhackPlayBtn">Play (1 token)</button>
+            <p class="arcade-hint">tap a hole the instant something pops up</p>
           </div>
-          <p class="arcade-hint">arrow keys / WASD, or the pad above</p>
         </div>
       </div>
     </div>

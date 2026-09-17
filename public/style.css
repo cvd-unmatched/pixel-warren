@@ -478,7 +478,7 @@
     border:2px solid var(--stone); border-radius:8px; image-rendering:pixelated;
   }
   .arcade-hud{ display:flex; justify-content:space-between; width:100%; max-width:340px; font-size:11.5px; color:var(--parchment-dim); }
-  .arcade-hud #arcadeHudMsg{ color:var(--gold); font-weight:800; }
+  .arcade-hud #arcadeHudMsg, .arcade-hud #arcadeWhackMsg{ color:var(--gold); font-weight:800; }
   .arcade-dpad{
     display:grid; grid-template-columns:repeat(3, 44px); grid-template-rows:repeat(2, 44px);
     gap:4px; justify-content:center;
@@ -493,6 +493,23 @@
   .arcade-dpad-down{ grid-column:2; grid-row:2; }
   .arcade-dpad-right{ grid-column:3; grid-row:2; }
   .arcade-hint{ font-size:10px; color:var(--parchment-dim); opacity:0.7; margin:0; }
+  .arcade-game-card{ width:100%; margin-bottom:8px; }
+  .arcade-back-btn{ margin-bottom:10px; }
+
+  /* ---- Bog Whacker (arcade minigame #2) ---- */
+  .whack-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; width:100%; max-width:300px; }
+  .whack-hole{
+    position:relative; aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(ellipse at 50% 60%, #1c1712 0%, #0c0a09 70%);
+    border:2px solid var(--stone); overflow:hidden; cursor:pointer;
+  }
+  .whack-pop{
+    position:absolute; inset:10%; display:flex; transform:scale(0); opacity:0;
+    transition:transform .1s ease-out, opacity .1s ease-out;
+  }
+  .whack-pop.up{ transform:scale(1); opacity:1; }
+  .whack-pop svg{ width:100%; height:100%; image-rendering:pixelated; }
+  .whack-pop.skull{ filter:drop-shadow(0 0 4px rgba(163,49,46,0.9)); }
 
   .footer-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
   .reset-btn{ background:none; border:1px solid var(--line); color:var(--parchment-dim); font-size:10px; padding:6px 10px; border-radius:8px; cursor:pointer; }
@@ -577,6 +594,7 @@
     .add-wrap.show{ animation:none !important; }
     .hp-fill.regen-flash{ animation:none !important; }
     .arena::after{ animation:none !important; opacity:1; }
+    .whack-pop{ transition:none !important; }
     .roulette-wheel{ transition:none !important; }
     .angel-orbit, .angel-icon{ animation:none !important; }
     .matti-angels.show .angel-orbit-1{ transform:rotate(0deg); }

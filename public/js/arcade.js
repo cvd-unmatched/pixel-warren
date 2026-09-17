@@ -203,9 +203,181 @@ function arcadeStart(){
   arcadeUpdateHud();
 }
 
-function openArcade(){
-  arcadeActive = true;
-  el.arcadeOverlay.classList.add('show');
+/* ---------------- Bog Whacker: a second Warren Chase minigame ------------
+   Monsters poke out of the bog's holes at random; whack them before they
+   duck back down. A skull is a trap -- whack one and the round ends right
+   there, but whatever's already scored still pays out, same "you keep what
+   you earned" rule as the maze. One shared tick drives spawning, despawn,
+   and the round clock entirely off tick counts (no wall-clock timestamps
+   and no per-hole setTimeouts to track), so every timing rule lives in
+   plain state a test can read and set directly.
+------------------------------------------------------------------------ */
+var WHACK_HOLES = 9;
+var WHACK_TICK_MS = 100;
+var WHACK_ROUND_TICKS = 200;       // 20s
+var WHACK_UP_TICKS = 8;            // 800ms visible per pop
+var WHACK_SPAWN_MIN_TICKS = 3;
+var WHACK_SPAWN_MAX_TICKS = 6;
+var WHACK_SKULL_CHANCE = 0.22;
+var WHACK_MOLE_KEYS = ['slime','goblin','sprig','mudpup','thornling','mosshopper','bramblewolf','gladefly'];
+
+var whackState = null;
+var whackTimer = null;
+var whackMoleIconCache = null;
+
+function whackMoleIcon(key){
+  if(!whackMoleIconCache) whackMoleIconCache = {};
+  if(!whackMoleIconCache[key]) whackMoleIconCache[key] = svgFromGrid(MONSTERS[key].rows, MONSTERS[key].palette);
+  return whackMoleIconCache[key];
+}
+
+function whackBuildState(){
+  var holes = [];
+  for(var i=0;i<WHACK_HOLES;i++) holes.push(null); // null | {isSkull, key, ticksLeft}
+  return { holes: holes, score:0, over:false, ticksLeft: WHACK_ROUND_TICKS, spawnInTicks: 2 };
+}
+
+function whackStopTimer(){
+  if(whackTimer){ clearInterval(whackTimer); whackTimer = null; }
+}
+
+function whackSpawnOne(){
+  var empties = [];
+  for(var i=0;i<whackState.holes.length;i++){ if(!whackState.holes[i]) empties.push(i); }
+  if(!empties.length) return;
+  var idx = empties[Math.floor(Math.random()*empties.length)];
+  var isSkull = Math.random() < WHACK_SKULL_CHANCE;
+  var key = WHACK_MOLE_KEYS[Math.floor(Math.random()*WHACK_MOLE_KEYS.length)];
+  whackState.holes[idx] = { isSkull: isSkull, key: key, ticksLeft: WHACK_UP_TICKS };
+  arcadeRenderWhackHole(idx);
+}
+
+function whackTick(){
+  if(!whackState || whackState.over) return;
+  whackState.ticksLeft--;
+  for(var i=0;i<whackState.holes.length;i++){
+    var occ = whackState.holes[i];
+    if(occ){
+      occ.ticksLeft--;
+      if(occ.ticksLeft<=0){ whackState.holes[i] = null; arcadeRenderWhackHole(i); }
+    }
+  }
+  whackState.spawnInTicks--;
+  if(whackState.spawnInTicks<=0){
+    whackSpawnOne();
+    whackState.spawnInTicks = WHACK_SPAWN_MIN_TICKS + Math.floor(Math.random()*(WHACK_SPAWN_MAX_TICKS-WHACK_SPAWN_MIN_TICKS+1));
+  }
+  arcadeUpdateWhackHud();
+  if(whackState.ticksLeft<=0) whackFinish(false);
+}
+
+function whackHitHole(idx){
+  if(!whackState || whackState.over) return;
+  var occ = whackState.holes[idx];
+  if(!occ) return;
+  whackState.holes[idx] = null;
+  arcadeRenderWhackHole(idx);
+  if(occ.isSkull){ whackFinish(true); return; }
+  whackState.score++;
+  arcadeUpdateWhackHud();
+}
+
+function whackFinish(byTrap){
+  if(!whackState || whackState.over) return;
+  whackState.over = true;
+  whackStopTimer();
+  for(var i=0;i<whackState.holes.length;i++){ whackState.holes[i] = null; }
+  arcadeRenderWhackAll();
+  var level = currentLevel();
+  // Square-root payout: a long lucky streak still tops out well short of a
+  // clean Maze Chase clear (a flat 40x baseGold), so this can't quietly
+  // become the strictly-better token sink just by clicking faster longer.
+  var reward = Math.round(level.baseGold * 6 * Math.sqrt(whackState.score));
+  if(reward>0){ state.gold += reward; state.totalGoldRun += reward; }
+  renderStats();
+  save();
+  var msg = byTrap
+    ? (whackState.score>0 ? ('Trapped! Banked '+whackState.score+' for +'+fmt(reward)+'g') : 'Trapped! Banked nothing that round.')
+    : (whackState.score>0 ? ('Time! '+whackState.score+' whacks for +'+fmt(reward)+'g') : 'Time! No whacks landed that round.');
+  toast(msg);
+  el.arcadeWhackMsg.textContent = byTrap ? 'Trapped!' : 'Time!';
+  el.arcadeWhackPlayBtn.disabled = state.chaseTokens < 1;
+  el.arcadeWhackPlayBtn.textContent = 'Play again (1 token)';
+}
+
+function arcadeUpdateWhackHud(){
+  if(!whackState) return;
+  el.arcadeWhackScore.textContent = 'Score: '+whackState.score;
+  el.arcadeWhackTime.textContent = Math.max(0, Math.ceil(whackState.ticksLeft * WHACK_TICK_MS / 1000))+'s';
+}
+
+function arcadeBuildWhackGrid(){
+  if(el.whackGrid.children.length === WHACK_HOLES) return;
+  el.whackGrid.innerHTML = '';
+  for(var i=0;i<WHACK_HOLES;i++){
+    var hole = document.createElement('div');
+    hole.className = 'whack-hole';
+    hole.dataset.idx = i;
+    hole.appendChild(document.createElement('div')).className = 'whack-pop';
+    el.whackGrid.appendChild(hole);
+  }
+  el.whackGrid.addEventListener('click', function(ev){
+    var hole = ev.target.closest('.whack-hole');
+    if(hole) whackHitHole(Number(hole.dataset.idx));
+  });
+}
+
+function arcadeRenderWhackHole(idx){
+  var hole = el.whackGrid.children[idx];
+  if(!hole) return;
+  var pop = hole.firstChild;
+  var occ = whackState && whackState.holes[idx];
+  if(occ){
+    pop.innerHTML = occ.isSkull ? SKULL_ICON_SVG : whackMoleIcon(occ.key);
+    pop.classList.add('up');
+    pop.classList.toggle('skull', !!occ.isSkull);
+  } else {
+    pop.classList.remove('up','skull');
+  }
+}
+
+function arcadeRenderWhackAll(){
+  arcadeBuildWhackGrid();
+  for(var i=0;i<WHACK_HOLES;i++) arcadeRenderWhackHole(i);
+}
+
+function whackStart(){
+  if(state.chaseTokens < 1) return;
+  state.chaseTokens--;
+  renderStats();
+  save();
+  whackState = whackBuildState();
+  whackStopTimer();
+  whackTimer = setInterval(whackTick, WHACK_TICK_MS);
+  el.arcadeWhackPlayBtn.disabled = true;
+  el.arcadeWhackPlayBtn.textContent = 'Playing...';
+  el.arcadeWhackMsg.textContent = '';
+  arcadeRenderWhackAll();
+  arcadeUpdateWhackHud();
+}
+
+/* ---------------- Modal plumbing: pick a game, or back out to the list -- */
+var arcadeView = 'select';
+
+function arcadeShowSelect(){
+  arcadeView = 'select';
+  arcadeStopTimers();
+  whackStopTimer();
+  el.arcadeSelect.hidden = false;
+  el.arcadeMazeView.hidden = true;
+  el.arcadeWhackView.hidden = true;
+}
+
+function arcadeShowMaze(){
+  arcadeView = 'maze';
+  el.arcadeSelect.hidden = true;
+  el.arcadeMazeView.hidden = false;
+  el.arcadeWhackView.hidden = true;
   if(!arcadeCtx) arcadeCtx = el.arcadeCanvas.getContext('2d');
   arcadeStopTimers();
   arcadeState = arcadeBuildState();
@@ -215,9 +387,30 @@ function openArcade(){
   arcadeRender();
   arcadeUpdateHud();
 }
+
+function arcadeShowWhack(){
+  arcadeView = 'whack';
+  el.arcadeSelect.hidden = true;
+  el.arcadeMazeView.hidden = true;
+  el.arcadeWhackView.hidden = false;
+  whackStopTimer();
+  whackState = whackBuildState();
+  el.arcadeWhackPlayBtn.disabled = state.chaseTokens < 1;
+  el.arcadeWhackPlayBtn.textContent = 'Play (1 token)';
+  el.arcadeWhackMsg.textContent = '';
+  arcadeRenderWhackAll();
+  arcadeUpdateWhackHud();
+}
+
+function openArcade(){
+  arcadeActive = true;
+  el.arcadeOverlay.classList.add('show');
+  arcadeShowSelect();
+}
 function closeArcade(){
   arcadeActive = false;
   arcadeStopTimers();
+  whackStopTimer();
   el.arcadeOverlay.classList.remove('show');
 }
 
@@ -226,7 +419,7 @@ var ARCADE_KEY_DIR = {
   w:'up', s:'down', a:'left', d:'right', W:'up', S:'down', A:'left', D:'right'
 };
 document.addEventListener('keydown', function(ev){
-  if(!arcadeActive) return;
+  if(arcadeView !== 'maze') return;
   var dir = ARCADE_KEY_DIR[ev.key];
   if(dir){ arcadeSetDir(dir); ev.preventDefault(); }
 });
@@ -235,3 +428,8 @@ el.arcadePlayBtn.addEventListener('click', arcadeStart);
 el.arcadeDpad.querySelectorAll('.arcade-dpad-btn').forEach(function(btn){
   btn.addEventListener('click', function(){ arcadeSetDir(btn.dataset.dir); });
 });
+el.arcadePickMaze.addEventListener('click', arcadeShowMaze);
+el.arcadePickWhack.addEventListener('click', arcadeShowWhack);
+el.arcadeMazeBackBtn.addEventListener('click', arcadeShowSelect);
+el.arcadeWhackBackBtn.addEventListener('click', arcadeShowSelect);
+el.arcadeWhackPlayBtn.addEventListener('click', whackStart);
