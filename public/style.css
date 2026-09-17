@@ -152,6 +152,19 @@
   .arena-sky{ position:absolute; inset:0; transition: background 0.8s ease; }
   .arena-decor{ position:absolute; inset:0; pointer-events:none; }
   .decor-item{ position:absolute; image-rendering:pixelated; opacity:0.85; }
+  /* A darkened, breathing edge around the whole arena -- every realm's
+     gradient is a smooth, evenly-lit backdrop on its own, which reads as
+     scenic more than threatening. This alone (no per-realm retuning)
+     pulls the corners into shadow and keeps only the monster itself lit,
+     the same trick a dim room does to make whatever's in it feel bigger.
+     Pure opacity animation (cheap, GPU-composited) -- no filter/drop-
+     shadow, which is what made the old boss flicker effect expensive. */
+  .arena::after{
+    content:''; position:absolute; inset:0; z-index:3; pointer-events:none;
+    background: radial-gradient(ellipse at 50% 55%, transparent 28%, rgba(0,0,0,0.35) 68%, rgba(0,0,0,0.72) 100%);
+    animation: arenaBreathe 6s ease-in-out infinite;
+  }
+  @keyframes arenaBreathe{ 0%,100%{ opacity:0.85; } 50%{ opacity:1; } }
 
   .arena-content{ position:relative; z-index:2; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; gap:14px; }
 
@@ -563,6 +576,7 @@
     .currency.gold-pulse .icon{ animation:none !important; }
     .add-wrap.show{ animation:none !important; }
     .hp-fill.regen-flash{ animation:none !important; }
+    .arena::after{ animation:none !important; opacity:1; }
     .roulette-wheel{ transition:none !important; }
     .angel-orbit, .angel-icon{ animation:none !important; }
     .matti-angels.show .angel-orbit-1{ transform:rotate(0deg); }

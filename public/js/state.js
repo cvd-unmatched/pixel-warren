@@ -242,7 +242,12 @@
     // that always re-matches their power. The one difficulty knob left is
     // total Village levels (a slow, deliberate Ascend/Blessings choice,
     // not raw grinding), so post-Ascend runs stay meaningfully harder.
-    var scale = 1 + totalVillageLevels()*0.35;
+    // 0.35/level wasn't enough bite: Forge/Barracks alone already grant
+    // +20% click/dps per level *each*, so a modest, Blessings-funded
+    // Village build was still outpacing it by a wide margin ("a couple of
+    // upgrades and you 1-shot everything"). Raised to 0.7 -- still just
+    // this one lever, tuned harder rather than adding a second one.
+    var scale = 1 + totalVillageLevels()*0.7;
     var hp = Math.round(level.baseHp * scale * (isBoss?level.hpBossMult:1));
     var goldReward = Math.round(level.baseGold * scale * (isBoss?level.goldBossMult:1) * (0.85+Math.random()*0.3));
     return { key:key, name:name, isBoss:isBoss, maxHp:hp, hp:hp, goldReward:goldReward, regenTicksUsed:0,
