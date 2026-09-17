@@ -3,7 +3,7 @@
   var ELEMENTAL_HIT_FX = { dragon:'fire', dragonFrost:'ice', dragonStorm:'lightning' };
 
   /* ---------------- Combat ---------------- */
-  function dealDamage(amount, isCrit){
+  function dealDamage(amount, isCrit, isAuto){
     var target = activeTarget();
     if(!target || target.hp<=0) return;
     var isAdd = !!state.addEnemy;
@@ -21,6 +21,11 @@
       return;
     }
     if(!isAdd && state.enemy.curseActive){
+      // "Click free of it" is the whole point -- auto-DPS landing on a
+      // cursed boss must not progress the break-free counter, or the curse
+      // resolves itself within a few seconds of passive ticks with zero
+      // clicking, same as it always could before this fix.
+      if(isAuto){ spawnFloater('cursed', 'blocked'); return; }
       progressCurse();
       return;
     }
@@ -28,9 +33,11 @@
       spawnFloater('immune', 'blocked');
       return;
     }
-    // overcharge just wants to know an attack was actually attempted during
-    // its channel window -- even one that goes on to miss below still counts
-    if(!isAdd) target.overchargeClicked = true;
+    // overcharge just wants to know a real click landed during its channel
+    // window -- even one that goes on to miss below still counts, but an
+    // auto-DPS tick must not, or any nonzero auto damage trivially satisfies
+    // "keep attacking" and the punish-for-neglect heal can never fire.
+    if(!isAdd && !isAuto) target.overchargeClicked = true;
     if(!isAdd && target.camoUntil && Date.now() < target.camoUntil){
       spawnFloater('miss', 'blocked');
       return;
@@ -51,12 +58,28 @@
     if(!isAdd && target.weakpointUntil && Date.now() < target.weakpointUntil){
       amount = amount * target.weakpointMult;
     }
+    // null = no gamble this hit; true/false records which way the coin flip
+    // landed so the floater below can actually show it -- previously this
+    // was invisible, a scatter of unexplained big/small numbers with no way
+    // to tell a win from a loss hit by hit.
+    var gambleHigh = null;
     if(!isAdd && target.gambleUntil && Date.now() < target.gambleUntil){
-      amount = Math.random() < 0.5 ? amount*2 : amount*0.5;
+      gambleHigh = Math.random() < 0.5;
+      amount = gambleHigh ? amount*2 : amount*0.5;
+    }
+    // isCrit was already baked into `amount` by the caller (onStageClick /
+    // the auto-DPS tick) before dealDamage ever saw it, so flipping it here
+    // alone never actually reduced damage -- only relabeled the floater.
+    // Enrage has to strip the crit multiplier back out to mean anything.
+    if(!isAdd && isCrit && target.enrageUntil && Date.now() < target.enrageUntil){
+      amount = amount / critMultVal();
+      isCrit = false;
     }
     amount = Math.round(amount*10)/10;
-    if(!isAdd && target.enrageUntil && Date.now() < target.enrageUntil) isCrit = false;
-    spawnFloater('-'+fmtDamage(amount), blocked ? 'blocked' : (isCrit?'crit':''));
+    var floaterCls = blocked ? 'blocked' : (isCrit?'crit':'');
+    if(gambleHigh !== null) floaterCls = (floaterCls?floaterCls+' ':'') + (gambleHigh?'gamble-high':'gamble-low');
+    var gambleTag = gambleHigh === true ? ' x2' : gambleHigh === false ? ' x0.5' : '';
+    spawnFloater('-'+fmtDamage(amount)+gambleTag, floaterCls);
     // a small elemental flourish on a crit against a dragon -- these are
     // the flagship bosses, so they get a bit more "wow" than a plain floater
     if(isCrit && !isAdd && ELEMENTAL_HIT_FX[target.key]){
@@ -600,7 +623,7 @@
         var isCrit = Math.random() < critChance();
         var amount = dps * (isCrit ? critMultVal() : 1);
         amount = Math.round(amount*(TICK_MS/1000)*10)/10;
-        if(amount>0) applyOverkillBonus(dealDamage(amount, isCrit));
+        if(amount>0) applyOverkillBonus(dealDamage(amount, isCrit, true));
       }
     }
     // keep the shield badge/glow accurate even between damage events

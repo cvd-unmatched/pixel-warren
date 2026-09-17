@@ -131,7 +131,8 @@
     arcadeWhackScore: document.getElementById('arcadeWhackScore'),
     arcadeWhackTime: document.getElementById('arcadeWhackTime'),
     arcadeWhackPlayBtn: document.getElementById('arcadeWhackPlayBtn'),
-    arcadeWhackMsg: document.getElementById('arcadeWhackMsg')
+    arcadeWhackMsg: document.getElementById('arcadeWhackMsg'),
+    hydraQueue: document.getElementById('hydraQueue')
   };
 
   var lastLevelRendered = -1;
@@ -269,6 +270,29 @@
         el.addLabel.textContent = add.name;
       }
       el.addHpFill.style.width = Math.max(0, add.hp/add.maxHp*100)+'%';
+    }
+
+    // The player only ever fights one head at a time (see clearHydraHead in
+    // combat.js -- the next head replaces the last rather than joining it),
+    // but a wave can be several heads deep, and until now nothing on screen
+    // ever showed that: it just said "Hydra" and looked like any other
+    // single-guardian fight. This renders the *rest* of the current wave as
+    // a dimmed row waiting their turn, so "multiple heads" is something you
+    // can actually see rather than only read in the sub-text.
+    var hydraOn = showingAdd && !!e.hydraActive;
+    el.hydraQueue.classList.toggle('show', hydraOn);
+    if(hydraOn){
+      var queued = Math.max(0, (e.hydraHeadsInWave||0) - (e.hydraHeadsKilledInWave||0) - 1);
+      if(el.hydraQueue.children.length !== queued){
+        el.hydraQueue.innerHTML = '';
+        var headMon = MONSTERS.hydraHead;
+        for(var qi=0; qi<queued; qi++){
+          var q = document.createElement('div');
+          q.className = 'hydra-queue-head';
+          q.innerHTML = '<img src="'+spriteImg(headMon.rows, headMon.palette, 'hydraHead')+'" alt="">';
+          el.hydraQueue.appendChild(q);
+        }
+      }
     }
 
     var gateOn = !showingAdd && !!e.mathGateActive;

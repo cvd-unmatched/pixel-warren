@@ -38,14 +38,28 @@ describe('damage-modifier formulas', () => {
     assert.equal(g.blessingGain(), 0);
   });
 
-  test('enrage suppresses crit styling without changing the damage amount', () => {
+  test('enrage strips the crit multiplier back out, actually reducing damage, not just hiding crit styling', () => {
+    // onStageClick/the auto-DPS tick both bake the crit multiplier into
+    // `amount` themselves before dealDamage ever sees it, so this simulates
+    // a real crit hit the same way: base 10 damage, already multiplied.
+    // Previously enrage only flipped isCrit for the floater's CSS class
+    // *after* that multiplied amount was fixed, so the "no clean hits will
+    // land" boss was actually landing full, un-nerfed crits the entire
+    // time -- see combat.js's dealDamage.
     g.triggerEnrage({ duration: 30000 });
     const before_ = g.state.enemy.hp;
-    g.dealDamage(10, true);
-    assert.equal(before_ - g.state.enemy.hp, 10, 'enrage must not change the damage amount, only crit styling');
+    g.dealDamage(10 * g.critMultVal(), true);
+    assert.equal(before_ - g.state.enemy.hp, 10, 'enrage should undo the crit multiplier, landing the plain base amount');
     const floaters = Array.from(dom.window.document.querySelectorAll('.floater'));
     const last = floaters[floaters.length - 1];
     assert.ok(!last.className.includes('crit'), 'a crit hit during enrage should not render as a crit');
+  });
+
+  test('enrage leaves a non-crit hit completely alone', () => {
+    g.triggerEnrage({ duration: 30000 });
+    const before_ = g.state.enemy.hp;
+    g.dealDamage(10, false);
+    assert.equal(before_ - g.state.enemy.hp, 10, 'enrage only targets crits -- an ordinary hit must land unchanged');
   });
 
   test('frostbite reduces damage by a flat amount, never below zero', () => {
@@ -80,6 +94,23 @@ describe('damage-modifier formulas', () => {
       const dealt = before_ - g.state.enemy.hp;
       assert.ok(dealt === 20 || dealt === 5, 'a gamble hit must land as either double (20) or half (5) of 10, got ' + dealt);
     }
+  });
+
+  test('a gamble hit\'s floater visibly says which way the coin flip landed', () => {
+    // Previously a doubled and a halved hit rendered as an identical plain
+    // number -- with the coin re-flipped independently on every single hit
+    // (clicks and auto-DPS ticks alike) during the window, the player just
+    // saw a scatter of unexplained big/small numbers with no way to tell a
+    // win from a loss. See combat.js's dealDamage.
+    g.state.enemy.gambleUntil = Date.now() + 30000;
+    g.dealDamage(10, false);
+    const floaters = Array.from(dom.window.document.querySelectorAll('.floater'));
+    const last = floaters[floaters.length - 1];
+    const wonHigh = last.className.includes('gamble-high');
+    const wonLow = last.className.includes('gamble-low');
+    assert.ok(wonHigh || wonLow, 'the floater must carry a gamble-high or gamble-low class');
+    assert.ok(!(wonHigh && wonLow), 'a single hit cannot be both outcomes');
+    assert.ok(last.textContent.includes(wonHigh ? 'x2' : 'x0.5'), 'the floater text itself must say the multiplier, not rely on color alone');
   });
 
   test('shield reduction is percentage-based', () => {

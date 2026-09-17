@@ -245,6 +245,10 @@
   .add-sprite{ width:74px; height:74px; animation: bob 2.2s ease-in-out infinite; }
   .add-sprite svg{ width:100%; height:100%; image-rendering:pixelated; }
   .add-hp-track{ width:100%; height:8px; border-radius:5px; background:rgba(0,0,0,0.5); border:1px solid var(--line); overflow:hidden; }
+  .hydra-queue{ display:none; flex-direction:row; gap:3px; }
+  .hydra-queue.show{ display:flex; }
+  .hydra-queue-head{ width:20px; height:20px; opacity:0.5; filter:brightness(0.85); }
+  .hydra-queue-head img{ width:100%; height:100%; image-rendering:pixelated; }
   .add-hp-fill{ height:100%; background:linear-gradient(90deg,#7a2f2f,var(--danger)); width:100%; }
 
   /* ---- Matti's math gate: blocks all damage until answered ---- */
@@ -286,6 +290,8 @@
   .floater.crit{ color:var(--gold); font-size:19px; }
   .floater.gold{ color:#8fae6a; }
   .floater.blocked{ color:var(--shield); }
+  .floater.gamble-high{ color:#7ee787; text-shadow:0 0 6px rgba(126,231,135,0.75), 0 2px 3px rgba(0,0,0,0.6); }
+  .floater.gamble-low{ color:#e08a7d; }
 
   .flash{ position:absolute; inset:0; background:var(--gold); opacity:0; pointer-events:none; z-index:9; }
   .flash.go{ animation: bossFlash .6s ease; }

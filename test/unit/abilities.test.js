@@ -108,6 +108,24 @@ describe('boss/monster powers', () => {
     assert.equal(e.hp, 450, 'damage should land normally once the curse is broken');
   });
 
+  test('curse only breaks from real clicks -- auto-DPS ticks must not progress it', () => {
+    // "Click free of it" is the ability's entire point; dealDamage's third
+    // argument is `isAuto`, set true only by the auto-DPS tick loop. Before
+    // this was wired up, the shared dealDamage path had no way to tell a
+    // click from a tick, so any nonzero auto-DPS quietly broke a curse
+    // within a few seconds with zero clicking.
+    var e = g.state.enemy;
+    e.maxHp = 500; e.hp = 500;
+    g.triggerCurse({ clicksNeeded: 3 });
+
+    g.dealDamage(999, false, true); // an auto-DPS tick
+    assert.equal(e.curseProgress, 0, 'an auto-DPS tick must not progress the break-free counter');
+    assert.equal(e.curseActive, true);
+
+    g.dealDamage(999, false); // a real click
+    assert.equal(e.curseProgress, 1, 'a real click must still progress it');
+  });
+
   test('frostbite defaults its flat reduction to 1% of max HP when the level data omits one', () => {
     var e = g.state.enemy;
     e.maxHp = 1000;
@@ -145,6 +163,24 @@ describe('boss/monster powers', () => {
     assert.equal(e.hp, 490, 'a click during the channel should cancel the heal, leaving only the click\'s own damage');
   });
 
+  test('overcharge is not satisfied by auto-DPS -- only a real click should cancel the heal', async () => {
+    // Before dealDamage learned the difference between a click and an
+    // auto-DPS tick, `overchargeClicked` was set by *any* non-add hit, and
+    // the once-per-second auto loop virtually guarantees a tick lands
+    // within any channel window -- so the "keep attacking" mechanic was
+    // trivially satisfied by simply having nonzero auto-DPS, never by
+    // actually engaging with the fight.
+    var e = g.state.enemy;
+    e.maxHp = 1000; e.hp = 500;
+    g.triggerOvercharge({ channelDuration: 50, healFrac: 0.1 }, g.bossFightToken);
+    g.dealDamage(10, false, true); // an auto-DPS tick, not a click
+    await sleep(120);
+    // the tick's own 10 damage still lands (500-10=490) -- only the flag it
+    // must not set is what's under test -- then the unpunished-channel heal
+    // still fires on top, same 10% of max HP as the no-damage-at-all case
+    assert.equal(e.hp, 590, 'an auto-DPS tick landing during the channel must not cancel the heal');
+  });
+
   test('secondWind heals once when HP first crosses its threshold, and never fires twice', () => {
     var e = g.state.enemy;
     e.maxHp = 1000; e.hp = 1000;
@@ -175,6 +211,27 @@ describe('boss/monster powers', () => {
     assert.equal(e.hydraVulnerable, false);
     assert.equal(e.hydraHeadsInWave, 2, 'the next wave should double');
     assert.ok(g.state.addEnemy, 'the next wave\'s first head should already be up');
+  });
+
+  test('a multi-head wave shows the rest of the wave queued up, not just the active head', () => {
+    // Only one head is ever the actual, clickable add (clearHydraHead
+    // replaces it rather than adding alongside it -- see combat.js), but a
+    // wave can be several heads deep and until now nothing on screen showed
+    // that at all. #hydraQueue renders the *rest* of the current wave as a
+    // dimmed row so "multiple heads" is something the player can actually
+    // see, not just infer from a sub-text line.
+    var e = g.state.enemy;
+    var ability = { headKey: 'hydraHead', initialHeads: 3, maxHeads: 8, headHpFrac: 0.1, vulnerableDuration: 50 };
+    e.maxHp = 1000; e.hp = 1000;
+    g.triggerHydraWave(ability);
+    assert.equal(g.el.hydraQueue.children.length, 2, 'a 3-head wave should show 2 heads still queued after the active one');
+    assert.ok(g.el.hydraQueue.classList.contains('show'));
+
+    g.clearHydraHead(); // 1 down, 2 to go
+    assert.equal(g.el.hydraQueue.children.length, 1, 'the queue should shrink as heads are cleared');
+
+    g.clearHydraHead(); // 2 down, only the last head remains active
+    assert.equal(g.el.hydraQueue.children.length, 0, 'no heads queued once only the last one remains');
   });
 
   test('webPull is a pure flourish: it never touches enemy HP', () => {
