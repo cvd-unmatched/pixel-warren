@@ -40,6 +40,25 @@ from `process.env`, so exporting them directly also works):
   any monster from the full roster and fight it in an isolated test
   arena, independent of realm progress or your save.
 
+## Docker
+
+Prebuilt images are published to GHCR whenever a `v*` tag is pushed (see
+`.github/workflows/docker-release.yml`):
+
+```bash
+docker pull ghcr.io/cvd-unmatched/pixel-warren:0.1.0-alpha.1
+docker run -d -p 8080:8080 -v pixel-warren-data:/app/data \
+  ghcr.io/cvd-unmatched/pixel-warren:0.1.0-alpha.1
+```
+
+The `alpha` tag always points at the newest alpha build if you don't want
+to pin an exact version. Pass any of the env vars from Configuration above
+with `-e` (e.g. `-e DB_HOST=... -e DB_USER=...` for MariaDB-backed
+accounts); the volume at `/app/data` is where the guest-mode save file
+lives, so mount it to keep progress across container restarts.
+
+To build locally instead of pulling: `docker build -t pixel-warren .`
+
 ## Accounts and leaderboard
 
 With MariaDB configured, the server creates its own schema on boot

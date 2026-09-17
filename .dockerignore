@@ -1,0 +1,16 @@
+node_modules
+.git
+.github
+.claude
+data
+dist
+test
+scripts
+*.md
+.env
+.env.example
+*.log
+.DS_Store
+Thumbs.db
+*.bak
+public/tmp_ref

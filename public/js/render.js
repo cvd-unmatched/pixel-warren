@@ -133,7 +133,8 @@
     arcadeWhackPlayBtn: document.getElementById('arcadeWhackPlayBtn'),
     arcadeWhackMsg: document.getElementById('arcadeWhackMsg'),
     hydraQueue: document.getElementById('hydraQueue'),
-    perkList: document.getElementById('perkList')
+    perkList: document.getElementById('perkList'),
+    versionTag: document.getElementById('versionTag')
   };
 
   var lastLevelRendered = -1;

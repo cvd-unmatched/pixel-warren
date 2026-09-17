@@ -260,6 +260,7 @@
   // Fails silently (stays false) on a server that doesn't expose this,
   // or on the Artifact build which has no server at all.
   fetch('api/config').then(function(r){ return r.json(); }).then(function(cfg){
+    if(cfg && cfg.version){ el.versionTag.textContent = '· v'+cfg.version; }
     if(cfg && cfg.bestiaryShowAll){ bestiaryShowAll = true; renderBestiary(); }
     if(cfg && cfg.godMode){ godMode = true; }
     if(cfg && cfg.clickLogging){ loggingEnabled = true; }

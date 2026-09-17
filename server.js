@@ -6,6 +6,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { version: APP_VERSION } = require('./package.json');
 
 // Load .env into process.env without adding a dotenv dependency -- a
 // value already set in the real environment always wins.
@@ -322,6 +323,7 @@ async function handleLeaderboard(req, res) {
 // regardless of what that player has actually defeated.
 async function handleConfig(req, res) {
   sendJson(res, 200, {
+    version: APP_VERSION,
     bestiaryShowAll: process.env.BESTIARY === 'true',
     toolsEnabled: TOOLS_ENABLED,
     godMode: process.env.GOD === 'true',
