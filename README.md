@@ -46,16 +46,53 @@ Prebuilt images are published to GHCR whenever a `v*` tag is pushed (see
 `.github/workflows/docker-release.yml`):
 
 ```bash
-docker pull ghcr.io/cvd-unmatched/pixel-warren:0.1.0-alpha.1
-docker run -d -p 8080:8080 -v pixel-warren-data:/app/data \
-  ghcr.io/cvd-unmatched/pixel-warren:0.1.0-alpha.1
+docker pull ghcr.io/cvd-unmatched/pixel-warren:alpha
+docker run -d \
+  --name pixel-warren \
+  -p 8080:8080 \
+  -v pixel-warren-data:/app/data \
+  ghcr.io/cvd-unmatched/pixel-warren:alpha
 ```
 
-The `alpha` tag always points at the newest alpha build if you don't want
-to pin an exact version. Pass any of the env vars from Configuration above
-with `-e` (e.g. `-e DB_HOST=... -e DB_USER=...` for MariaDB-backed
-accounts); the volume at `/app/data` is where the guest-mode save file
-lives, so mount it to keep progress across container restarts.
+The `alpha` tag always points at the newest alpha build; pin an exact
+version instead (e.g. `:0.1.0-alpha.1`) if you don't want it moving out
+from under you.
+
+**Port** -- the server listens on `8080` inside the container. Map it to
+whatever host port you like with `-p <host-port>:8080`.
+
+**Volume** -- mount `/app/data` or progress is lost every time the
+container is recreated; that's where the guest-mode `save.json` lives.
+
+**Environment variables** -- all optional, passed with `-e KEY=value`:
+
+- `PORT` (default `8080`): change only if you also change the container's
+  internal port and the `-p` mapping to match.
+- `HOST` (default `0.0.0.0`): interface to bind. Leave as-is in Docker.
+- `DATA_DIR` (default `/app/data`): where `save.json` is written. Already
+  matches the volume above -- only set this if you mount somewhere else.
+- `DB_HOST` / `DB_PORT` (default `3306`) / `DB_USER` / `DB_PASSWORD` /
+  `DB_NAME`: MariaDB connection details for accounts and the leaderboard.
+  Leave `DB_HOST` unset for guest-only mode (single JSON save, no login).
+- `BESTIARY=true`: design-review switch, reveals every monster's lore/
+  power regardless of what's been defeated.
+- `TOOLS=true`: enables the sprite editor at `/tool`, which writes to a
+  source file on disk. Don't enable this in a real deployment.
+- `GOD=true`: every click is a one-hit kill. Testing only.
+- `MONSTERS=true`: enables the monster simulator at `/monsters`.
+
+Example with MariaDB-backed accounts:
+
+```bash
+docker run -d \
+  -p 8080:8080 \
+  -v pixel-warren-data:/app/data \
+  -e DB_HOST=mariadb.example.internal \
+  -e DB_USER=pixelwarren \
+  -e DB_PASSWORD=changeme \
+  -e DB_NAME=pixel_warren \
+  ghcr.io/cvd-unmatched/pixel-warren:alpha
+```
 
 To build locally instead of pulling: `docker build -t pixel-warren .`
 
