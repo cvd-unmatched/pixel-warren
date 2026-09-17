@@ -23,7 +23,19 @@
          and early hits are never wasted on a boss that just heals back.
      Leave it out (or empty) for a plain tank-and-spank boss.
   ---------------------------------------------- */
-  var DEFAULT_KILLS_PER_BOSS = 8;
+  var DEFAULT_KILLS_PER_BOSS = 15;
+  // Camp Shop power (the only thing at all before a first Ascend, since
+  // Village/Blessings don't exist yet) was climbing so much faster than the
+  // realm-to-realm HP curve that a five-minutes-a-day player reached
+  // Dragon's Peak in under a day, and a dedicated one in under an hour --
+  // nowhere near long enough for beating the dragon to actually feel like a
+  // milestone. Modeled against the real upgrade costs/effects at a few
+  // play-intensity levels (a few minutes a day up through several hours a
+  // day, every day), this keeps even the most dedicated modeled player past
+  // a week, with more typical playtime taking two to several weeks. Kept as
+  // one multiplier here rather than baked into every LEVELS_RAW baseHp, so
+  // the authored per-realm curve stays readable.
+  var REALM_HP_SCALE = 350;
   var LEVELS_RAW = [
 { key:'forest', name:"Whispering Forest", enemies:['slime','goblin','sprig','mudpup','thornling','mosshopper','bramblewolf','gladefly'], boss:'ent', bossName:"Elder Ent",
       baseHp:12, baseGold:4, accent:'#9be27a',
@@ -131,7 +143,7 @@
     return {
       key: lvl.key, name: lvl.name,
       enemies: lvl.enemies, boss: lvl.boss, bossName: lvl.bossName,
-      baseHp: lvl.baseHp, baseGold: lvl.baseGold,
+      baseHp: lvl.baseHp * REALM_HP_SCALE, baseGold: lvl.baseGold,
       accent: lvl.accent || '#e8c468',
       sky: lvl.sky || 'linear-gradient(180deg,#3a3a3a 0%, #202020 60%, #101010 100%)',
       lore: lvl.lore || '',
@@ -314,54 +326,54 @@ sprig: { lore:"A wandering offshoot of something larger, still learning to walk.
     { id:'luck', label:'Luck' }
   ];
   var UPGRADES = [
-    { id:'click', category:'click', name:'Sharper Claws', role:'clickFlat', desc:'+1 click damage / level', baseCost:10, costMult:1.15,
+    { id:'click', category:'click', name:'Sharper Claws', role:'clickFlat', desc:'+1 click damage / level', baseCost:10, costMult:1.22,
       effect:function(lvl){ return lvl; }, format:function(v){ return '+'+v+' dmg'; } },
-    { id:'clickMult', category:'click', name:'Iron Grip', role:'clickMult', desc:'+12% click damage', baseCost:130, costMult:1.25,
+    { id:'clickMult', category:'click', name:'Iron Grip', role:'clickMult', desc:'+12% click damage', baseCost:130, costMult:1.36,
       requires:{id:'click', level:3},
       effect:function(lvl){ return 1+lvl*0.12; }, format:function(v){ return v.toFixed(2)+'x'; } },
-    { id:'forgeBlade', category:'click', name:'Forge-Tempered Blade', role:'clickFlat', desc:'+3 click damage / level (needs the Forge)', baseCost:120, costMult:1.2,
+    { id:'forgeBlade', category:'click', name:'Forge-Tempered Blade', role:'clickFlat', desc:'+3 click damage / level (needs the Forge)', baseCost:120, costMult:1.29,
       requires:{id:'forge', level:1, source:'village'},
       effect:function(lvl){ return lvl*3; }, format:function(v){ return '+'+v+' dmg'; } },
 
-    { id:'dps', category:'auto', name:'Trained Helper', role:'dpsFlat', desc:'+1 auto damage per second', baseCost:25, costMult:1.17,
+    { id:'dps', category:'auto', name:'Trained Helper', role:'dpsFlat', desc:'+1 auto damage per second', baseCost:25, costMult:1.25,
       effect:function(lvl){ return lvl; }, format:function(v){ return v+'/s'; } },
-    { id:'dpsMult', category:'auto', name:"Helper's Whetstone", role:'dpsMult', desc:'+15% auto damage', baseCost:90, costMult:1.25,
+    { id:'dpsMult', category:'auto', name:"Helper's Whetstone", role:'dpsMult', desc:'+15% auto damage', baseCost:90, costMult:1.36,
       requires:{id:'dps', level:1},
       effect:function(lvl){ return 1+lvl*0.15; }, format:function(v){ return v.toFixed(2)+'x'; } },
-    { id:'dps2', category:'auto', name:'Apprentice Hunter', role:'dpsFlat', desc:'+4 auto damage per second', baseCost:150, costMult:1.2,
+    { id:'dps2', category:'auto', name:'Apprentice Hunter', role:'dpsFlat', desc:'+4 auto damage per second', baseCost:150, costMult:1.29,
       requires:{id:'dps', level:3},
       effect:function(lvl){ return lvl*4; }, format:function(v){ return v+'/s'; } },
-    { id:'dps3', category:'auto', name:'Veteran Warband', role:'dpsFlat', desc:'+15 auto damage per second', baseCost:600, costMult:1.22,
+    { id:'dps3', category:'auto', name:'Veteran Warband', role:'dpsFlat', desc:'+15 auto damage per second', baseCost:600, costMult:1.32,
       requires:{id:'dps2', level:3},
       effect:function(lvl){ return lvl*15; }, format:function(v){ return v+'/s'; } },
-    { id:'barracksDrill', category:'auto', name:'Barracks Drill', role:'dpsFlat', desc:'+8 auto damage per second (needs the Barracks)', baseCost:180, costMult:1.2,
+    { id:'barracksDrill', category:'auto', name:'Barracks Drill', role:'dpsFlat', desc:'+8 auto damage per second (needs the Barracks)', baseCost:180, costMult:1.29,
       requires:{id:'barracks', level:1, source:'village'},
       effect:function(lvl){ return lvl*8; }, format:function(v){ return v+'/s'; } },
 
-    { id:'crit', category:'crit', name:'Lucky Strike', role:'critChance', desc:'+3% crit chance (clicks & auto)', baseCost:50, costMult:1.22,
+    { id:'crit', category:'crit', name:'Lucky Strike', role:'critChance', desc:'+3% crit chance (clicks & auto)', baseCost:50, costMult:1.32,
       effect:function(lvl){ return lvl*0.03; }, format:function(v){ return Math.round(v*100)+'%'; } },
-    { id:'critMult', category:'crit', name:'Heavy Blow', role:'critMultAdd', desc:'+0.3x crit damage (clicks & auto)', baseCost:75, costMult:1.22,
+    { id:'critMult', category:'crit', name:'Heavy Blow', role:'critMultAdd', desc:'+0.3x crit damage (clicks & auto)', baseCost:75, costMult:1.32,
       requires:{id:'crit', level:1},
       effect:function(lvl){ return lvl*0.3; }, format:function(v){ return '+'+v.toFixed(1)+'x'; } },
-    { id:'crit2', category:'crit', name:'Keen Eye', role:'critChance', desc:'+2% crit chance (clicks & auto)', baseCost:300, costMult:1.25,
+    { id:'crit2', category:'crit', name:'Keen Eye', role:'critChance', desc:'+2% crit chance (clicks & auto)', baseCost:300, costMult:1.36,
       requires:{id:'crit', level:5},
       effect:function(lvl){ return lvl*0.02; }, format:function(v){ return Math.round(v*100)+'%'; } },
-    { id:'shrineBlessing', category:'crit', name:'Blessed Edge', role:'critMultAdd', desc:'+0.4x crit damage (needs the Shrine)', baseCost:200, costMult:1.22,
+    { id:'shrineBlessing', category:'crit', name:'Blessed Edge', role:'critMultAdd', desc:'+0.4x crit damage (needs the Shrine)', baseCost:200, costMult:1.32,
       requires:{id:'shrine', level:1, source:'village'},
       effect:function(lvl){ return lvl*0.4; }, format:function(v){ return '+'+v.toFixed(1)+'x'; } },
 
-    { id:'gold', category:'gold', name:"Merchant's Favor", role:'goldMult', desc:'+8% gold from kills', baseCost:60, costMult:1.19,
+    { id:'gold', category:'gold', name:"Merchant's Favor", role:'goldMult', desc:'+8% gold from kills', baseCost:60, costMult:1.28,
       effect:function(lvl){ return 1+lvl*0.08; }, format:function(v){ return v.toFixed(2)+'x'; } },
-    { id:'goldFlat', category:'gold', name:"Prospector's Fortune", role:'goldFlat', desc:'+1 flat gold per kill', baseCost:40, costMult:1.2,
+    { id:'goldFlat', category:'gold', name:"Prospector's Fortune", role:'goldFlat', desc:'+1 flat gold per kill', baseCost:40, costMult:1.29,
       requires:{id:'gold', level:1},
       effect:function(lvl){ return lvl; }, format:function(v){ return '+'+v+'g'; } },
-    { id:'gold2', category:'gold', name:'Treasure Map', role:'goldMult', desc:'+12% gold from kills', baseCost:400, costMult:1.24,
+    { id:'gold2', category:'gold', name:'Treasure Map', role:'goldMult', desc:'+12% gold from kills', baseCost:400, costMult:1.35,
       requires:{id:'gold', level:3},
       effect:function(lvl){ return 1+lvl*0.12; }, format:function(v){ return v.toFixed(2)+'x'; } },
-    { id:'watchtowerScout', category:'gold', name:"Scout's Bounty", role:'goldFlat', desc:'+3 flat gold per kill (needs the Watchtower)', baseCost:150, costMult:1.2,
+    { id:'watchtowerScout', category:'gold', name:"Scout's Bounty", role:'goldFlat', desc:'+3 flat gold per kill (needs the Watchtower)', baseCost:150, costMult:1.29,
       requires:{id:'watchtower', level:1, source:'village'},
       effect:function(lvl){ return lvl*3; }, format:function(v){ return '+'+v+'g'; } },
-    { id:'wellTap', category:'gold', name:'Deep Well Tap', role:'goldMult', desc:'+10% gold from kills (needs the Well)', baseCost:250, costMult:1.22,
+    { id:'wellTap', category:'gold', name:'Deep Well Tap', role:'goldMult', desc:'+10% gold from kills (needs the Well)', baseCost:250, costMult:1.32,
       requires:{id:'well', level:1, source:'village'},
       effect:function(lvl){ return 1+lvl*0.1; }, format:function(v){ return v.toFixed(2)+'x'; } },
 
