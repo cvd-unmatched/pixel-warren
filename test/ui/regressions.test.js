@@ -179,3 +179,57 @@ describe('ascend', () => {
     assert.equal(g.state.loginStreak, 4, 'the login streak must survive Ascend too');
   });
 });
+
+describe('bestiary/achievements lazy rendering', () => {
+  let dom, g;
+
+  before(async () => {
+    dom = await bootGame();
+    g = dom.window.__game;
+  });
+
+  after(() => dom.window.close());
+
+  test('renderAll() never builds the Bestiary/Achievements grids -- only opening the panel does', () => {
+    // Each traced monster's sprite can run well over a thousand individual
+    // <rect> elements once quantized from real reference art. Building all
+    // ~87 of those into the DOM on every renderAll() (every single kill)
+    // put a quarter million <rect> nodes into the page whether or not the
+    // player ever opened the Bestiary -- and a document that heavy made
+    // every other layout-touching operation slower too, which is what
+    // turned into "clicks feel delayed" and "health drains after I stop
+    // clicking" reports. renderAll() must only keep the cheap found/total
+    // counters live; the actual tiles are built lazily on open.
+    g.renderAll();
+    assert.equal(g.el.bestiaryGrid.children.length, 0, 'renderAll() must not build Bestiary tiles');
+    assert.equal(g.el.achvGrid.children.length, 0, 'renderAll() must not build Achievement tiles');
+    assert.equal(g.el.bestiaryCount.textContent, String(g.bestiaryKeys().filter(k => g.state.defeated[k]).length),
+      'the found-count must still stay live without the grid being built');
+
+    g.renderBestiary();
+    assert.equal(g.el.bestiaryGrid.children.length, g.bestiaryKeys().length, 'opening the panel must build every tile');
+
+    g.renderAchievements();
+    assert.equal(g.el.achvGrid.children.length, g.ACHIEVEMENTS.length, 'opening the panel must build every achievement tile');
+
+    // Once built, a later renderAll() must not tear the grid back down --
+    // only rebuild-on-open, never destroy-on-close.
+    g.renderAll();
+    assert.equal(g.el.bestiaryGrid.children.length, g.bestiaryKeys().length, 'an already-open Bestiary must not get cleared by a background renderAll()');
+  });
+
+  test('the HP bar has no width transition, so it cannot lag behind rapid clicks', () => {
+    // A CSS transition on .hp-fill's width meant every hit re-targeted an
+    // in-flight 180ms animation before it finished, so clicking faster
+    // than that kept the bar visibly behind the true HP and left it still
+    // draining for a moment after the player stopped -- reported as
+    // "health goes down after we stop clicking". jsdom doesn't run real
+    // CSS (and can't parse the <link>-loaded stylesheet anyway), so this
+    // checks the source file's rule text directly.
+    const fs = require('fs');
+    const path = require('path');
+    const css = fs.readFileSync(path.join(__dirname, '..', '..', 'public', 'style.css'), 'utf8');
+    const hpFillRule = css.match(/\.hp-fill\{[^}]*\}/)[0];
+    assert.ok(!/transition\s*:[^;}]*width/.test(hpFillRule), '.hp-fill must not transition its width property');
+  });
+});

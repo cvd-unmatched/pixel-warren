@@ -247,9 +247,9 @@
   // clicks all landing, and how far apart are they really" on a device
   // with no attached devtools to check the console on.
   var clickLogEl = null, clickLogStats = { received:0, dropped:0, landed:0 };
-  function logClick(outcome, gapMs){
+  function logClick(outcome, gapMs, extra){
     if(!loggingEnabled) return;
-    console.log('[click] '+outcome+' gap='+Math.round(gapMs)+'ms');
+    console.log('[click] '+outcome+' gap='+Math.round(gapMs)+'ms'+(extra?' '+extra:''));
     clickLogStats.received++;
     if(outcome === 'dropped-throttle') clickLogStats.dropped++;
     else if(outcome === 'landed') clickLogStats.landed++;
@@ -258,7 +258,7 @@
       clickLogEl.style.cssText = 'position:fixed;top:4px;left:4px;z-index:9999;background:rgba(0,0,0,0.75);color:#9f9;font:10px monospace;padding:4px 7px;border-radius:4px;pointer-events:none;white-space:pre;';
       document.body.appendChild(clickLogEl);
     }
-    clickLogEl.textContent = 'clicks '+clickLogStats.received+' | landed '+clickLogStats.landed+' | dropped '+clickLogStats.dropped+' | last gap '+Math.round(gapMs)+'ms';
+    clickLogEl.textContent = 'clicks '+clickLogStats.received+' | landed '+clickLogStats.landed+' | dropped '+clickLogStats.dropped+' | last gap '+Math.round(gapMs)+'ms'+(extra?'\n'+extra:'');
   }
   function onStageClick(ev){
     if(ev && ev.isTrusted === false) return;
@@ -268,7 +268,6 @@
     lastClickAt = now;
     var target = activeTarget();
     if(!target || target.hp<=0){ logClick('no-target', gap); return; }
-    logClick('landed', gap);
     var isCrit = Math.random() < critChance();
     var dmg = clickDamage() * (isCrit ? critMultVal() : 1);
     dmg = Math.round(dmg*10)/10;
@@ -277,6 +276,16 @@
     var hitEl = state.addEnemy ? el.addSpriteWrap : el.spriteWrap;
     hitEl.classList.remove('hit'); void hitEl.offsetWidth; hitEl.classList.add('hit');
     applyOverkillBonus(dealDamage(dmg, isCrit));
+    // Measured AFTER dealDamage returns, so this is the real end-to-end
+    // synchronous cost of one click: event -> throttle check -> damage
+    // math -> floater created -> HP bar's inline width already rewritten.
+    // If this number is small (it should be well under 1ms) but the bar
+    // still visually looked laggy before, that confirms it was the CSS
+    // transition on .hp-fill lagging the paint, not this code being slow.
+    var processMs = performance.now() - now;
+    var hpFillWidth = el.hpFill.style.width;
+    var hpText = el.hpText.textContent;
+    logClick('landed', gap, 'dmg='+dmg+' processMs='+processMs.toFixed(2)+' hpFillWidth='+hpFillWidth+' hpText="'+hpText+'"');
   }
 
   function buyUpgrade(u){
@@ -421,8 +430,8 @@
     renderShop();
     renderVillage();
     renderPrestige();
-    renderBestiary();
-    renderAchievements();
+    bestiaryCounts();
+    achievementCounts();
   }
 
   // Set from GET /api/config at boot (see ui.js) -- a BESTIARY=true env
@@ -452,11 +461,27 @@
       '<div class="bestiary-name">'+(known ? titleCase(key) : '???')+'</div>'+
       (known && info ? '<div class="bestiary-lore">'+info.lore+'</div><div class="bestiary-power"><b>Power:</b> '+info.power+'</div>' : '');
   }
-  function renderBestiary(){
+  // The cheap half: just the "N / 87 found" counters, visible in the
+  // sidebar even with the panel closed, so renderAll() (every kill) can
+  // afford to call this unconditionally.
+  function bestiaryCounts(){
     var keys = bestiaryKeys();
     var found = keys.filter(function(k){ return state.defeated[k]; }).length;
     [el.bestiaryCount, el.bestiaryModalCount].forEach(function(n){ n.textContent = found; });
     [el.bestiaryTotal, el.bestiaryModalTotal].forEach(function(n){ n.textContent = keys.length; });
+  }
+  // The expensive half: every entry's own detailed sprite, each traced
+  // monster easily 1000-2000+ individual <rect> elements once quantized
+  // from real reference art. Building all 87 of those into the DOM on
+  // every renderAll() (again: every kill) put a quarter million <rect>
+  // nodes into the page whether or not anyone ever opened the Bestiary --
+  // and a document that heavy makes every other layout-touching operation
+  // slower too (a forced reflow, like the click hit-shake below, has to
+  // account for the whole tree). Only called when the panel is actually
+  // opened; renderAll() only keeps the cheap counters above live.
+  function renderBestiary(){
+    bestiaryCounts();
+    var keys = bestiaryKeys();
     var revealAll = bestiaryShowAll;
     if(el.bestiaryGrid.children.length !== keys.length){
       el.bestiaryGrid.innerHTML = '';
@@ -482,10 +507,13 @@
     });
   }
 
-  function renderAchievements(){
+  function achievementCounts(){
     var earned = ACHIEVEMENTS.filter(function(a){ return state.achievements[a.id]; }).length;
     [el.achvCount, el.achvModalCount].forEach(function(n){ n.textContent = earned; });
     [el.achvTotal, el.achvModalTotal].forEach(function(n){ n.textContent = ACHIEVEMENTS.length; });
+  }
+  function renderAchievements(){
+    achievementCounts();
     if(el.achvGrid.children.length !== ACHIEVEMENTS.length){
       el.achvGrid.innerHTML = '';
       ACHIEVEMENTS.forEach(function(a){

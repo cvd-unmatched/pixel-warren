@@ -83,7 +83,9 @@ async function bootGame(){
     '  get lastBossEnterAt(){ return lastBossEnterAt; }, set lastBossEnterAt(v){ lastBossEnterAt = v; },',
     '  openArcade: openArcade, closeArcade: closeArcade, arcadeStart: arcadeStart,',
     '  arcadeTick: arcadeTick, arcadeGhostTick: arcadeGhostTick, arcadeSetDir: arcadeSetDir,',
-    '  ARCADE_MAZE: ARCADE_MAZE, get arcadeState(){ return arcadeState; }',
+    '  ARCADE_MAZE: ARCADE_MAZE, get arcadeState(){ return arcadeState; },',
+    '  renderBestiary: renderBestiary, renderAchievements: renderAchievements,',
+    '  bestiaryKeys: bestiaryKeys, ACHIEVEMENTS: ACHIEVEMENTS',
     '};'
   ].join('\n');
 

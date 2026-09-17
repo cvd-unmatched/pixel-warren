@@ -231,18 +231,13 @@
         }, 1000 / (mon.fps || 6));
       }
     }
+    // No CSS transition on width (see .hp-fill) -- every hit, including a
+    // fresh spawn's full bar, must snap to the true value immediately.
+    // Clicking fast used to keep retargeting a 180ms animation before it
+    // ever finished, so the bar visibly lagged the real HP and kept
+    // draining for a moment after you stopped clicking.
     var pct = Math.max(0, e.hp/e.maxHp*100);
-    if(fresh){
-      // A brand-new target should read as full health instantly, not visibly
-      // fill up from the previous target's leftover bar width -- that filling
-      // motion reads as "healing", which is the wrong cue for "new monster".
-      el.hpFill.style.transition = 'none';
-      el.hpFill.style.width = pct+'%';
-      void el.hpFill.offsetWidth;
-      el.hpFill.style.transition = '';
-    } else {
-      el.hpFill.style.width = pct+'%';
-    }
+    el.hpFill.style.width = pct+'%';
     el.hpText.textContent = fmt(Math.max(0,e.hp)) + ' / ' + fmt(e.maxHp);
 
     // Bosses only ever show up when you walk in on purpose -- farm normal
