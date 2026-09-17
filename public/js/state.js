@@ -70,12 +70,20 @@
       levelIndex:0, killsInLevel:0, totalKills:0, bossReady:false, dragonKills:0, gambleTokens:0, chaseTokens:0,
       upgradeLevels: defaultLevels(UPGRADES),
       villageLevels: defaultLevels(VILLAGE),
+      perks:{}, ascendCount:0,
       defeated:{},
       achievements:{},
       enemy:null,
       loginStreak:0, lastLoginDate:null
     };
   }
+  function hasPerk(id){ return !!state.perks[id]; }
+  // The one perk effect that isn't a flat unlock -- it keeps paying off the
+  // longer a save has been played, not just the moment it's bought, so it
+  // rewards sticking with a save across many Ascends rather than one big
+  // Blessing dump. Capped at +100% so it stays a strong long-run perk
+  // rather than an eventual must-have that dwarfs everything else.
+  function momentumMult(){ return hasPerk('ascendantMomentum') ? 1 + Math.min(1, state.ascendCount*0.02) : 1; }
   // Local calendar day as YYYY-MM-DD, so the streak turns over at midnight
   // where the player actually is, not at UTC midnight.
   function todayKey(){
@@ -115,6 +123,8 @@
     state.chaseTokens = d.chaseTokens||0;
     state.upgradeLevels = d.upgradeLevels || state.upgradeLevels;
     state.villageLevels = d.villageLevels || state.villageLevels;
+    state.perks = d.perks || state.perks;
+    state.ascendCount = d.ascendCount||0;
     state.defeated = d.defeated || state.defeated;
     state.achievements = d.achievements || state.achievements;
     state.enemy = d.enemy || null;
@@ -132,7 +142,7 @@
       gold:state.gold, blessings:state.blessings, totalGoldRun:state.totalGoldRun,
       levelIndex:state.levelIndex, killsInLevel:state.killsInLevel, totalKills:state.totalKills, bossReady:state.bossReady,
       dragonKills:state.dragonKills, gambleTokens:state.gambleTokens, chaseTokens:state.chaseTokens,
-      upgradeLevels:state.upgradeLevels, villageLevels:state.villageLevels, defeated:state.defeated, achievements:state.achievements, enemy:state.enemy,
+      upgradeLevels:state.upgradeLevels, villageLevels:state.villageLevels, perks:state.perks, ascendCount:state.ascendCount, defeated:state.defeated, achievements:state.achievements, enemy:state.enemy,
       loginStreak:state.loginStreak, lastLoginDate:state.lastLoginDate,
       finalBeaten:finalBeaten, savedAt:Date.now()
     };
@@ -150,12 +160,12 @@
   // Blessings themselves carry no automatic bonus -- they're spent in the
   // Village (see VILLAGE above), and every Village building already feeds
   // these same roles alongside the run's Camp Shop upgrades.
-  function clickDamage(){ return (1+sumEffect('clickFlat')) * multEffect('clickMult'); }
-  function dpsValue(){ return sumEffect('dpsFlat') * multEffect('dpsMult'); }
+  function clickDamage(){ return (1+sumEffect('clickFlat')) * multEffect('clickMult') * momentumMult(); }
+  function dpsValue(){ return sumEffect('dpsFlat') * multEffect('dpsMult') * momentumMult(); }
   var CRIT_CHANCE_CAP = 0.75;
   function critChance(){ return Math.min(CRIT_CHANCE_CAP, sumEffect('critChance')); }
   function critMultVal(){ return 1.5 + sumEffect('critMultAdd'); }
-  function goldMultVal(){ return multEffect('goldMult'); }
+  function goldMultVal(){ return multEffect('goldMult') * momentumMult(); }
   function goldFlatBonus(){ return sumEffect('goldFlat'); }
   // Luck: a regular (non-boss) kill has this chance to also drop a bonus
   // Gambling Token, on top of the guaranteed one from realm bosses --

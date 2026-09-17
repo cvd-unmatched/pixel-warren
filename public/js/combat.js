@@ -188,7 +188,9 @@
         // a second reason to want boss kills beyond the roulette token.
         state.gambleTokens++;
         state.chaseTokens++;
-        toast(e.name+' dropped a Gambling Token and a Chase Token!');
+        var bonusToken = hasPerk('warrensBounty') && Math.random() < 0.1;
+        if(bonusToken) state.chaseTokens++;
+        toast(e.name+' dropped a Gambling Token and a Chase Token'+(bonusToken?' (and a bonus one)':'')+'!');
       }
       state.bossReady = false;
       state.killsInLevel = 0;
@@ -299,6 +301,11 @@
     var hitEl = state.addEnemy ? el.addSpriteWrap : el.spriteWrap;
     hitEl.classList.remove('hit'); void hitEl.offsetWidth; hitEl.classList.add('hit');
     applyOverkillBonus(dealDamage(dmg, isCrit));
+    if(hasPerk('twinStrike') && Math.random() < 0.15){
+      var isCrit2 = Math.random() < critChance();
+      var dmg2 = clickDamage() * (isCrit2 ? critMultVal() : 1);
+      applyOverkillBonus(dealDamage(Math.round(dmg2*10)/10, isCrit2));
+    }
     // Measured AFTER dealDamage returns, so this is the real end-to-end
     // synchronous cost of one click: event -> throttle check -> damage
     // math -> floater created -> HP bar's inline width already rewritten.
@@ -365,9 +372,10 @@
   function maxAffordableVillage(b){
     var lvl = state.villageLevels[b.id]||0;
     var blessings = state.blessings;
+    var mult = effectiveCostMult(b);
     var count = 0, spent = 0;
     for(var i=0;i<10000;i++){
-      var cost = Math.round(b.baseCost * Math.pow(b.costMult, lvl+count));
+      var cost = Math.round(b.baseCost * Math.pow(mult, lvl+count));
       if(blessings < cost) break;
       blessings -= cost; spent += cost; count++;
     }
@@ -380,6 +388,16 @@
     state.blessings -= preview.cost;
     state.villageLevels[b.id] = (state.villageLevels[b.id]||0) + preview.count;
     unlockAchievement('villageFounder');
+    renderAll();
+    save();
+  }
+
+  function buyPerk(p){
+    if(state.perks[p.id]) return;
+    if(state.blessings < p.cost) return;
+    state.blessings -= p.cost;
+    state.perks[p.id] = true;
+    toast('Unlocked: '+p.name+'!');
     renderAll();
     save();
   }
@@ -415,6 +433,8 @@
     if(gain<1) return;
     var blessings = state.blessings + gain;
     var village = state.villageLevels;
+    var perks = state.perks;
+    var ascendCount = state.ascendCount + 1;
     var defeated = state.defeated;
     var achievements = state.achievements;
     var dragonKills = state.dragonKills;
@@ -423,6 +443,8 @@
     state = freshState();
     state.blessings = blessings;
     state.villageLevels = village; // the Village is permanent -- it survives the reset
+    state.perks = perks; // Prestige Perks are permanent too
+    state.ascendCount = ascendCount;
     state.defeated = defeated; // so does what you've already discovered
     state.achievements = achievements; // and everything you've earned
     state.dragonKills = dragonKills;

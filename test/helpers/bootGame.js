@@ -90,7 +90,9 @@ async function bootGame(){
     '  arcadeShowMaze: arcadeShowMaze, arcadeShowWhack: arcadeShowWhack,',
     '  whackStart: whackStart, whackTick: whackTick, whackHitHole: whackHitHole,',
     '  get whackState(){ return whackState; },',
-    '  WHACK_HOLES: WHACK_HOLES, WHACK_ROUND_TICKS: WHACK_ROUND_TICKS, WHACK_UP_TICKS: WHACK_UP_TICKS',
+    '  WHACK_HOLES: WHACK_HOLES, WHACK_ROUND_TICKS: WHACK_ROUND_TICKS, WHACK_UP_TICKS: WHACK_UP_TICKS,',
+    '  PERKS: PERKS, buyPerk: buyPerk, hasPerk: hasPerk, momentumMult: momentumMult,',
+    '  clickDamage: clickDamage, goldMultVal: goldMultVal, villageCost: villageCost',
     '};'
   ].join('\n');
 

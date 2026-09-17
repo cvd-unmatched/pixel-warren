@@ -334,6 +334,8 @@
   .village-balance .icon{ width:14px; height:14px; }
   .village-balance b{ color:var(--parchment); font-variant-numeric:tabular-nums; }
   .village-blurb{ margin:2px 0 8px; font-size:10.5px; color:var(--parchment-dim); flex:none; }
+  .perk-blurb{ margin-top:10px; }
+  .perk-row.owned{ border-color:var(--gold); }
 
   .panel-section{ flex:1 1 0; min-height:64px; display:flex; flex-direction:column; gap:8px; overflow:hidden; }
 

@@ -132,7 +132,8 @@
     arcadeWhackTime: document.getElementById('arcadeWhackTime'),
     arcadeWhackPlayBtn: document.getElementById('arcadeWhackPlayBtn'),
     arcadeWhackMsg: document.getElementById('arcadeWhackMsg'),
-    hydraQueue: document.getElementById('hydraQueue')
+    hydraQueue: document.getElementById('hydraQueue'),
+    perkList: document.getElementById('perkList')
   };
 
   var lastLevelRendered = -1;
@@ -432,10 +433,47 @@
     maxBtn.textContent = 'Max x'+bulk.count+' ('+bulk.cost+')';
   }
 
+  // One-time unlocks rather than leveled buildings: a name/desc and a
+  // single buy button that flips to "Owned" for good. renderAll() calls
+  // this on every kill (via renderVillage()), same as the Village building
+  // list below -- build each row's DOM once, then only touch what changed,
+  // rather than rebuilding from scratch every time.
+  function updatePerkRow(row, p){
+    var owned = hasPerk(p.id);
+    var buyBtn = row.querySelector('.buy');
+    row.classList.toggle('owned', owned);
+    if(owned){
+      buyBtn.disabled = true;
+      buyBtn.textContent = 'Owned';
+    } else {
+      buyBtn.disabled = state.blessings < p.cost;
+    }
+  }
+  function renderPerks(){
+    if(el.perkList.children.length !== PERKS.length){
+      el.perkList.innerHTML = '';
+      PERKS.forEach(function(p){
+        var row = document.createElement('div');
+        row.className = 'upgrade perk-row';
+        row.innerHTML =
+          '<div class="u-name"><span class="u-icon">'+VILLAGE_ICON_SVG[p.icon]+'</span>'+p.name+'</div>'+
+          '<div class="u-desc">'+p.desc+'</div>'+
+          '<div class="u-buy-row"><button class="buy"><span class="buy-icon">'+BLESS_ICON_SVG+'</span><span class="buy-cost">'+p.cost+'</span></button></div>';
+        row.querySelector('.buy').addEventListener('click', function(){ buyPerk(p); });
+        el.perkList.appendChild(row);
+        updatePerkRow(row, p);
+      });
+    } else {
+      var rows = el.perkList.children;
+      PERKS.forEach(function(p, i){ updatePerkRow(rows[i], p); });
+    }
+  }
+
   function renderVillage(){
     el.villageBlessCount.textContent = state.blessings;
     el.villageModalBlessCount.textContent = state.blessings;
     renderVillageScene();
+    renderPerks();
     if(el.villageList.children.length !== VILLAGE.length){
       el.villageList.innerHTML = '';
       VILLAGE.forEach(function(b){

@@ -406,8 +406,30 @@ sprig: { lore:"A wandering offshoot of something larger, still learning to walk.
     { id:'casino', name:'Casino', icon:'casino', desc:'Unlocks the Gambling Den', baseCost:3, costMult:1.8,
       effect:function(lvl){ return lvl; }, format:function(v){ return v>=1 ? 'Open for business' : 'Not built yet'; } }
   ];
+
+  // Prestige Perks: one-time unlocks bought with Blessings, same as a
+  // Village building, but each one changes a *rule* of a run instead of
+  // adding another stacking percentage -- and they're permanent, same as
+  // the Village, surviving every Ascend from here on.
+  var PERKS = [
+    { id:'eldersWisdom', name:"Elder's Wisdom", icon:'shrine', cost:15,
+      desc:'Village building costs grow more slowly the more you\'ve Ascended (down to half the normal growth rate by 50 Ascends).' },
+    { id:'twinStrike', name:'Twin Strike', icon:'forge', cost:25,
+      desc:'Clicks have a 15% chance to land a second, independent hit.' },
+    { id:'warrensBounty', name:"Warren's Bounty", icon:'casino', cost:20,
+      desc:'Boss kills have a 10% chance to drop an extra Chase Token.' },
+    { id:'ascendantMomentum', name:'Ascendant Momentum', icon:'watchtower', cost:40,
+      desc:'+2% click damage, auto damage, and gold per Ascend performed, up to +100% by 50 Ascends.' }
+  ];
   function casinoBuilt(){ return (state.villageLevels.casino||0) >= 1; }
-  function villageCost(b){ return Math.round(b.baseCost * Math.pow(b.costMult, state.villageLevels[b.id]||0)); }
+  // Elder's Wisdom softens the exponent itself (not a flat discount), so it
+  // keeps paying off at every level a building already has, not just new
+  // ones -- floored at half the original growth rate so costs still climb.
+  function effectiveCostMult(b){
+    if(!hasPerk('eldersWisdom')) return b.costMult;
+    return 1 + (b.costMult-1) * Math.max(0.5, 1 - state.ascendCount*0.01);
+  }
+  function villageCost(b){ return Math.round(b.baseCost * Math.pow(effectiveCostMult(b), state.villageLevels[b.id]||0)); }
   function totalVillageLevels(){
     return VILLAGE.reduce(function(sum,b){ return sum+(state.villageLevels[b.id]||0); }, 0);
   }
