@@ -321,4 +321,19 @@ describe('guest/account gating', () => {
       dom.window.close();
     }
   });
+
+  test('the cookie banner actually disappears when dismissed, not just its hidden property', () => {
+    // .cookie-banner's own unconditional display:flex silently beat the
+    // browser's default [hidden]{display:none} rule -- el.hidden = true
+    // took effect on the property/DOM level (confirmed live) but the
+    // banner stayed visually on screen, because nothing in the CSS ever
+    // said what [hidden] should actually look like once that rule lost.
+    // jsdom doesn't run real CSS, so this checks the source text directly,
+    // same approach as the .hp-fill transition check above.
+    const fs = require('fs');
+    const path = require('path');
+    const css = fs.readFileSync(path.join(__dirname, '..', '..', 'public', 'style.css'), 'utf8');
+    assert.ok(/\.cookie-banner\[hidden\]\s*\{[^}]*display\s*:\s*none/.test(css),
+      '.cookie-banner needs an explicit [hidden] rule, or its own display:flex always wins');
+  });
 });

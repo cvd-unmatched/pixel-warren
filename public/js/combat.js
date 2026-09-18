@@ -187,10 +187,21 @@
         // boss also drops a Chase Token for the Warren Chase minigame,
         // a second reason to want boss kills beyond the roulette token.
         state.gambleTokens++;
-        state.chaseTokens++;
+        // Deeper realms drop more Chase Tokens on top of the base one --
+        // deliberately NOT more gold. Gold buys permanent Camp Shop power
+        // that compounds for the rest of the run, so even a small bump to
+        // late-realm gold quietly undoes weeks of intended pacing (a
+        // rebalance already tuned around this exact tension -- see
+        // REALM_HP_RAMP_GROWTH above). Chase Tokens only ever buy a bounded,
+        // one-off Warren Chase round, so they can scale generously here
+        // without feeding that same snowball -- a real, felt reason to want
+        // deeper realms rather than parking on an easy one to farm.
+        var realmTokenBonus = Math.floor(state.levelIndex/2);
+        state.chaseTokens += 1 + realmTokenBonus;
         var bonusToken = hasPerk('warrensBounty') && Math.random() < 0.1;
         if(bonusToken) state.chaseTokens++;
-        toast(e.name+' dropped a Gambling Token and a Chase Token'+(bonusToken?' (and a bonus one)':'')+'!');
+        var tokenMsg = 'a Gambling Token and ' + (1+realmTokenBonus+(bonusToken?1:0)) + ' Chase Token' + (realmTokenBonus+(bonusToken?1:0)>0 ? 's' : '');
+        toast(e.name+' dropped '+tokenMsg+'!');
       }
       state.bossReady = false;
       state.killsInLevel = 0;
@@ -287,6 +298,15 @@
   }
   function onStageClick(ev){
     if(ev && ev.isTrusted === false) return;
+    // Fires on pointerdown now, not click -- click only fires after the
+    // full press-then-release-in-place gesture completes, which is an
+    // extra round trip a touchscreen doesn't need to pay: the finger
+    // touching down IS the tap, there's nothing left to wait for. Desktop
+    // mice are unaffected either way (that gap was never perceptible with
+    // a mouse), but a mouse's pointerdown also fires for the right/middle
+    // buttons, which a real "click" event never would -- skip those so a
+    // right-click still only opens the context menu.
+    if(ev && ev.pointerType === 'mouse' && ev.button !== 0) return;
     var now = performance.now();
     var gap = now - lastClickAt;
     if(gap < MIN_CLICK_INTERVAL_MS){ logClick('dropped-throttle', gap); return; }
