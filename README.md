@@ -22,11 +22,10 @@ Copy `.env.example` to `.env` and adjust as needed (the server reads these
 from `process.env`, so exporting them directly also works):
 
 - `PORT` / `HOST`: where the server listens (default `8080` / `0.0.0.0`).
-- `DATA_DIR`: where `save.json` is written for guest play. Point this at
-  a mounted volume when this eventually runs in Docker.
 - `DB_HOST` / `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME`: MariaDB
   connection details for accounts and the leaderboard. Leave `DB_HOST`
-  unset to run in guest-only mode (single JSON save file, no login).
+  unset to run in guest-only mode (see below -- there's nothing else to
+  configure for it, guest saves never touch the server at all).
 - `BESTIARY=true`: design-review switch that reveals every monster's
   lore and power in the Bestiary regardless of what's been defeated.
   Leave unset for normal play (silhouettes until you find each one).
@@ -54,7 +53,6 @@ docker pull ghcr.io/cvd-unmatched/pixel-warren:alpha
 docker run -d \
   --name pixel-warren \
   -p 8080:8080 \
-  -v pixel-warren-data:/app/data \
   ghcr.io/cvd-unmatched/pixel-warren:alpha
 ```
 
@@ -65,16 +63,15 @@ from under you.
 **Port** -- the server listens on `8080` inside the container. Map it to
 whatever host port you like with `-p <host-port>:8080`.
 
-**Volume** -- mount `/app/data` or progress is lost every time the
-container is recreated; that's where the guest-mode `save.json` lives.
+**Volume** -- none needed. The container itself is stateless: guest
+progress saves entirely in the player's own browser (see below), and
+account progress lives in MariaDB, not on the container's filesystem.
 
 **Environment variables** -- all optional, passed with `-e KEY=value`:
 
 - `PORT` (default `8080`): change only if you also change the container's
   internal port and the `-p` mapping to match.
 - `HOST` (default `0.0.0.0`): interface to bind. Leave as-is in Docker.
-- `DATA_DIR` (default `/app/data`): where `save.json` is written. Already
-  matches the volume above -- only set this if you mount somewhere else.
 - `DB_HOST` / `DB_PORT` (default `3306`) / `DB_USER` / `DB_PASSWORD` /
   `DB_NAME`: MariaDB connection details for accounts and the leaderboard.
   Leave `DB_HOST` unset for guest-only mode (single JSON save, no login).
@@ -92,7 +89,6 @@ Example with MariaDB-backed accounts:
 ```bash
 docker run -d \
   -p 8080:8080 \
-  -v pixel-warren-data:/app/data \
   -e DB_HOST=mariadb.example.internal \
   -e DB_USER=pixelwarren \
   -e DB_PASSWORD=changeme \
@@ -111,16 +107,32 @@ step) and exposes:
 - `POST /api/signup`, `POST /api/login`, `POST /api/logout`, `GET /api/me`
 - `GET /api/leaderboard` -- top 20 by Blessings, then dragon kills.
 
-Signing in switches `/api/save` from the local file to that account's row
-in the `saves` table, via an `HttpOnly` session cookie. Guest play (no
-account) is unaffected either way -- it's purely additive. Passwords are
-hashed with `crypto.scrypt`; there's no rate limiting on login/signup yet.
+Signing in switches `/api/save` to that account's row in the `saves`
+table, via an `HttpOnly` session cookie. Guest play (no account) never
+touches `/api/save` for anything beyond finding out it's a guest --
+progress saves entirely in that browser's own `localStorage` instead (see
+"Guest play" below). Passwords are hashed with `crypto.scrypt`; there's
+no rate limiting on login/signup yet.
 
 Only one session is valid per account at a time -- logging in on another
 tab or device deletes the previous session, so two copies of the game
 can never both be autosaving the same account and clobbering each
 other's progress. The older tab's next save silently falls back to
-guest-file mode and it gets a toast explaining why.
+localStorage and it gets a toast explaining why.
+
+### Guest play
+
+A guest has no account to key a server-side save off of. Earlier this
+saved to a single shared JSON file instead -- which meant every visitor
+without an account saw (and overwrote) the same progress, since the file
+had no way to tell them apart. Guest saves now live entirely in that
+browser's own `localStorage`, keyed by a versioned key
+(`pixelWarrenSave_v2`). The server is stateless with respect to guests:
+`GET/POST /api/save` just replies `{ guestMode: true }` for a
+non-authenticated request and stores nothing. First-time visitors (no
+local save yet, not signed in) see a one-time prompt to sign in, sign up,
+or continue as a guest; returning guests and signed-in accounts skip
+straight past it.
 
 Combat itself is still fully client-side, so an account does not yet
 prevent someone from editing their own save client-side before it's
@@ -139,7 +151,8 @@ the open internet.
 ## Project layout
 
 - `server.js`: static file server, the account/session/leaderboard API,
-  and `/api/save` (per-account when logged in, JSON-file otherwise).
+  and `/api/save` (per-account when logged in, a stateless `guestMode`
+  reply otherwise -- see "Guest play" above).
 - `public/index.html`: the page markup only. Pulls in `style.css` and the
   six files under `public/js/` in order (see below).
 - `public/style.css`: all styling.

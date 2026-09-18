@@ -294,3 +294,31 @@ describe('bestiary/achievements lazy rendering', () => {
     assert.ok(!/transition\s*:[^;}]*width/.test(hpFillRule), '.hp-fill must not transition its width property');
   });
 });
+
+describe('guest/account gating', () => {
+  test('a first-time guest (no local save yet, not logged in) is prompted to sign in or continue as guest', async () => {
+    const dom = await bootGame();
+    try {
+      const g = dom.window.__game;
+      assert.equal(g.hadLocalSaveBeforeBoot, false);
+      assert.ok(g.el.accountOverlay.classList.contains('show'), 'a first-time visitor should see the sign-in-or-guest prompt');
+    } finally {
+      dom.window.close();
+    }
+  });
+
+  test('a returning guest (already has a local save) is not prompted again', async () => {
+    // hadLocalSaveBeforeBoot has to be captured synchronously, before
+    // anything in boot (persistLoad, checkDailyStreak, the periodic
+    // autosave) gets a chance to write its own save and make a brand-new
+    // guest look like a returning one by the time the check runs.
+    const dom = await bootGame({ presetSave: { gold: 5, levelIndex: 0 } });
+    try {
+      const g = dom.window.__game;
+      assert.equal(g.hadLocalSaveBeforeBoot, true);
+      assert.ok(!g.el.accountOverlay.classList.contains('show'), 'a returning guest should not see the prompt again');
+    } finally {
+      dom.window.close();
+    }
+  });
+});

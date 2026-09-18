@@ -134,7 +134,10 @@
     arcadeWhackMsg: document.getElementById('arcadeWhackMsg'),
     hydraQueue: document.getElementById('hydraQueue'),
     perkList: document.getElementById('perkList'),
-    versionTag: document.getElementById('versionTag')
+    versionTag: document.getElementById('versionTag'),
+    continueGuestBtn: document.getElementById('continueGuestBtn'),
+    cookieBanner: document.getElementById('cookieBanner'),
+    cookieBannerOkBtn: document.getElementById('cookieBannerOkBtn')
   };
 
   var lastLevelRendered = -1;

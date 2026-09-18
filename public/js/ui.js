@@ -1,5 +1,17 @@
 "use strict";
 
+  // Snapshotted synchronously, before anything else in boot has had any
+  // chance to run and write one -- persistLoad()/checkDailyStreak()/the
+  // 8s autosave interval all eventually write this same key, and every
+  // one of them is reached through an async callback (a fetch().then(),
+  // an interval), never before the very first yield to the event loop.
+  // Capturing it this early is what makes it possible to tell "a save
+  // already existed before this page load" apart from "this page load's
+  // own boot already wrote one", further down when the sign-in-or-guest
+  // prompt below has to decide whether this is a first-time visitor.
+  var hadLocalSaveBeforeBoot = false;
+  try{ hadLocalSaveBeforeBoot = !!localStorage.getItem(SAVE_KEY); }catch(e){}
+
   /* ---------------- Wire up ---------------- */
   el.stage.addEventListener('click', onStageClick);
   el.stage.addEventListener('animationend', function(ev){
@@ -122,8 +134,23 @@
   function closeAccount(){ el.accountOverlay.classList.remove('show'); }
   el.accountBtn.addEventListener('click', openAccount);
   el.accountCloseBtn.addEventListener('click', closeAccount);
+  el.continueGuestBtn.addEventListener('click', closeAccount);
   el.accountOverlay.addEventListener('click', function(ev){
     if(ev.target === el.accountOverlay) closeAccount();
+  });
+
+  // A storage/cookie disclosure banner, shown until dismissed once --
+  // separate from the sign-in-or-guest prompt below, since it should keep
+  // showing on every visit (a returning guest with their own local save
+  // still needs to see it at least once) rather than only for brand-new
+  // visitors.
+  var COOKIE_NOTICE_KEY = 'pixelWarrenCookieNoticeSeen';
+  try{
+    if(!localStorage.getItem(COOKIE_NOTICE_KEY)) el.cookieBanner.hidden = false;
+  }catch(e){}
+  el.cookieBannerOkBtn.addEventListener('click', function(){
+    el.cookieBanner.hidden = true;
+    try{ localStorage.setItem(COOKIE_NOTICE_KEY, '1'); }catch(e){}
   });
   el.tabSignIn.addEventListener('click', function(){ setAuthMode('signin'); });
   el.tabSignUp.addEventListener('click', function(){ setAuthMode('signup'); });
@@ -183,7 +210,12 @@
       toast('Signed out. Progress now saves to this device only.');
     });
   });
-  checkAuthStatus();
+  // First-time visitors (not signed in, and no local guest save yet) get
+  // asked up front rather than silently defaulting to guest -- returning
+  // guests and signed-in accounts both skip straight past this.
+  checkAuthStatus().then(function(me){
+    if(me && !me.loggedIn && !hadLocalSaveBeforeBoot) openAccount();
+  });
 
   document.addEventListener('keydown', function(ev){
     if(ev.key === 'Escape'){ closeVillage(); closeBestiary(); closeAchievements(); closeAccount(); }

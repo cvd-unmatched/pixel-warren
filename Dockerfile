@@ -9,10 +9,8 @@ COPY server.js ./
 COPY public ./public
 
 ENV PORT=8080 \
-    HOST=0.0.0.0 \
-    DATA_DIR=/app/data
+    HOST=0.0.0.0
 
 EXPOSE 8080
-VOLUME ["/app/data"]
 
 CMD ["node", "server.js"]

@@ -292,7 +292,7 @@
       </div>
       <div class="modal-body">
         <div id="accountLoggedOut">
-          <p class="village-blurb">Sign in to keep your progress on this account and show up on the leaderboard. Playing without an account still works, progress just stays on this device.</p>
+          <p class="village-blurb">Sign in to keep your progress on this account and show up on the leaderboard. Playing as a guest still works -- progress just saves in this browser only (not synced anywhere, and lost if you clear site data).</p>
           <div class="account-tabs">
             <button class="account-tab active" id="tabSignIn" type="button">Sign In</button>
             <button class="account-tab" id="tabSignUp" type="button">Sign Up</button>
@@ -303,6 +303,7 @@
             <button class="ascend-btn" type="submit" id="authSubmitBtn">Sign In</button>
             <div class="account-error" id="authError"></div>
           </form>
+          <button class="guest-btn" id="continueGuestBtn" type="button">Continue as guest</button>
         </div>
         <div id="accountLoggedIn" hidden>
           <p class="village-blurb">Signed in as <b id="accountUsername"></b>. Your progress syncs to this account.</p>
@@ -313,6 +314,11 @@
       </div>
     </div>
   </div>
+</div>
+
+<div class="cookie-banner" id="cookieBanner" hidden>
+  <p>Pixel Warren saves your progress using a cookie (if you sign in) or your browser's local storage (as a guest). No tracking or third-party cookies.</p>
+  <button type="button" id="cookieBannerOkBtn">Got it</button>
 </div>
 
 <script src="js/sprites.js"></script>

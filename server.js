@@ -1,7 +1,7 @@
-// Static file + save-game server for Pixel Warren, plus optional
-// MariaDB-backed accounts and a leaderboard. Guest play (no login) keeps
-// working exactly as before, backed by a single JSON file -- accounts are
-// additive, not a requirement to run the game.
+// Static file server for Pixel Warren, plus optional MariaDB-backed
+// accounts, a leaderboard, and a save API used only by logged-in accounts
+// (guest play saves entirely client-side, see persistLoad/persistSave in
+// state.js -- there's no server-side state for guests to lose or share).
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -22,14 +22,10 @@ loadEnvFile(path.join(__dirname, '.env'));
 
 const PORT = process.env.PORT || 8080;
 const HOST = process.env.HOST || '0.0.0.0';
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
-const SAVE_FILE = path.join(DATA_DIR, 'save.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const MAX_BODY_BYTES = 256 * 1024;
 const SESSION_COOKIE = 'pw_session';
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
-
-fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const CONTENT_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -43,14 +39,14 @@ const CONTENT_TYPES = {
 
 /* ---------------- MariaDB (accounts + leaderboard) ----------------
    Entirely optional: with no DB_HOST set (or if the connection fails at
-   boot), the server just runs in guest-only, file-backed mode like
-   before. Nothing about local/Artifact play depends on this. */
+   boot), the server just runs with accounts disabled -- guest play (the
+   only kind, in that case) saves entirely client-side regardless. */
 let pool = null;
 let dbReady = false;
 
 async function initDb() {
   if (!process.env.DB_HOST) {
-    console.log('DB_HOST not set -- running in guest-only (file save) mode.');
+    console.log('DB_HOST not set -- accounts disabled, guests save to their own browser only.');
     return;
   }
   let mariadb;
@@ -193,28 +189,19 @@ function readJsonBody(req) {
   });
 }
 
-/* ---------------- Guest (file-backed) save, unchanged behavior ---------------- */
-function readFileSave() {
-  try {
-    return JSON.parse(fs.readFileSync(SAVE_FILE, 'utf8'));
-  } catch (e) {
-    return {};
-  }
-}
-function writeFileSaveAtomic(data) {
-  const tmpFile = SAVE_FILE + '.tmp';
-  fs.writeFileSync(tmpFile, JSON.stringify(data));
-  fs.renameSync(tmpFile, SAVE_FILE);
-}
-
-/* ---------------- Save endpoints: per-account when logged in, else file ---------------- */
+/* ---------------- Save endpoints: per-account (DB) when logged in, else
+   entirely client-side. A guest has no account to key a server-side save
+   off of, and a single shared file for every guest (the old behavior) is
+   actually worse than no server-side guest save at all -- every visitor
+   without an account saw and overwrote the same progress. Guests now save
+   purely to their own browser's localStorage (see persistLoad/persistSave
+   in state.js); these endpoints just tell a guest that's the deal, they
+   never read or write anything server-side for one. ---------------------- */
 async function handleGetSave(req, res) {
   const user = await getSessionUser(req).catch(() => null);
-  if (user) {
-    const rows = await pool.query('SELECT data FROM saves WHERE user_id = ?', [user.id]);
-    return sendJson(res, 200, rows[0] ? JSON.parse(rows[0].data) : {});
-  }
-  sendJson(res, 200, readFileSave());
+  if (!user) return sendJson(res, 200, { guestMode: true });
+  const rows = await pool.query('SELECT data FROM saves WHERE user_id = ?', [user.id]);
+  return sendJson(res, 200, rows[0] ? JSON.parse(rows[0].data) : {});
 }
 async function handlePostSave(req, res) {
   let data;
@@ -224,22 +211,19 @@ async function handlePostSave(req, res) {
     return sendJson(res, e.status || 400, { ok: false, error: e.message });
   }
   const user = await getSessionUser(req).catch(() => null);
-  if (user) {
-    await pool.query(
-      `INSERT INTO saves (user_id, data) VALUES (?, ?)
-       ON DUPLICATE KEY UPDATE data = VALUES(data)`,
-      [user.id, JSON.stringify(data)]
-    );
-    await pool.query(
-      `INSERT INTO leaderboard (user_id, username, blessings, dragon_kills, total_kills)
-       VALUES (?, ?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE blessings = VALUES(blessings), dragon_kills = VALUES(dragon_kills), total_kills = VALUES(total_kills)`,
-      [user.id, user.username, Math.max(0, Math.round(data.blessings || 0)), Math.max(0, Math.round(data.dragonKills || 0)), Math.max(0, Math.round(data.totalKills || 0))]
-    );
-    return sendJson(res, 200, { ok: true, loggedIn: true, username: user.username });
-  }
-  writeFileSaveAtomic(data);
-  sendJson(res, 200, { ok: true, loggedIn: false });
+  if (!user) return sendJson(res, 200, { ok: true, loggedIn: false, guestMode: true });
+  await pool.query(
+    `INSERT INTO saves (user_id, data) VALUES (?, ?)
+     ON DUPLICATE KEY UPDATE data = VALUES(data)`,
+    [user.id, JSON.stringify(data)]
+  );
+  await pool.query(
+    `INSERT INTO leaderboard (user_id, username, blessings, dragon_kills, total_kills)
+     VALUES (?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE blessings = VALUES(blessings), dragon_kills = VALUES(dragon_kills), total_kills = VALUES(total_kills)`,
+    [user.id, user.username, Math.max(0, Math.round(data.blessings || 0)), Math.max(0, Math.round(data.dragonKills || 0)), Math.max(0, Math.round(data.totalKills || 0))]
+  );
+  sendJson(res, 200, { ok: true, loggedIn: true, username: user.username });
 }
 
 /* ---------------- Auth endpoints ---------------- */
@@ -537,6 +521,5 @@ const server = http.createServer((req, res) => {
 initDb().finally(() => {
   server.listen(PORT, HOST, () => {
     console.log(`Pixel Warren running at http://localhost:${PORT}`);
-    console.log(`Save file (guest mode): ${SAVE_FILE}`);
   });
 });

@@ -1,12 +1,16 @@
 "use strict";
 
   /* ---------------- Persistence ----------------
-     Tries a same-origin save API first (server.js backs it with a JSON
-     file under DATA_DIR, ready to be a Docker volume mount later). If no
-     such API answers (this page opened as a static file or shared link),
-     it falls back to localStorage transparently. Every call site below
-     just uses persistLoad()/persistSave(); neither knows which backend
-     served it.
+     Logged-in accounts save server-side (server.js, backed by MariaDB).
+     Everyone else saves purely to this browser's localStorage -- a guest
+     has no account to key a server-side save off of, and a single shared
+     save for every guest (the old behavior) was worse than no server-side
+     guest save at all, since every visitor without an account saw and
+     overwrote the same progress. The server tells us which case we're in
+     via `guestMode` on the /api/save response, rather than the client
+     guessing from whether the request merely succeeded. Every call site
+     below just uses persistLoad()/persistSave(); neither knows or cares
+     which backend actually served it.
   ---------------------------------------------- */
   var SAVE_KEY = 'pixelWarrenSave_v2';
   var USE_SERVER = null;
@@ -14,12 +18,15 @@
     return fetch('api/save', {cache:'no-store'}).then(function(r){
       if(!r.ok) throw new Error('no server');
       return r.json();
-    }).then(function(d){ USE_SERVER = true; return d; })
-      .catch(function(){
-        USE_SERVER = false;
-        try{ var raw = localStorage.getItem(SAVE_KEY); return raw ? JSON.parse(raw) : null; }
-        catch(e){ return null; }
-      });
+    }).then(function(d){
+      if(d && d.guestMode) throw new Error('guest');
+      USE_SERVER = true;
+      return d;
+    }).catch(function(){
+      USE_SERVER = false;
+      try{ var raw = localStorage.getItem(SAVE_KEY); return raw ? JSON.parse(raw) : null; }
+      catch(e){ return null; }
+    });
   }
   function persistSave(payload){
     var json = JSON.stringify(payload);
@@ -28,8 +35,15 @@
       return;
     }
     fetch('api/save', { method:'POST', headers:{'Content-Type':'application/json'}, body: json })
-      .then(function(r){ if(!r.ok) throw new Error('save failed'); USE_SERVER = true; flashSaveDot(); return r.json(); })
+      .then(function(r){ if(!r.ok) throw new Error('save failed'); return r.json(); })
       .then(function(d){
+        if(d && d.guestMode){
+          USE_SERVER = false;
+          try{ localStorage.setItem(SAVE_KEY, json); }catch(e){}
+          return;
+        }
+        USE_SERVER = true;
+        flashSaveDot();
         // A save that lands as a guest write when this tab still thinks
         // it's signed in means the account session died server-side --
         // most likely another tab/device logged into the same account,
