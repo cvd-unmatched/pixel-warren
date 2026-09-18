@@ -1,0 +1,44 @@
+/* style.css sets body{display:flex;flex-direction:row} for the main
+   game's own layout -- override it here or this page's header and main
+   content lay out side by side as flex items instead of stacked. */
+.admin-body{ display:block; font-family: inherit; min-height:100vh; }
+.admin-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 20px; background:var(--panel); border-bottom:1px solid var(--line);
+}
+.admin-header h1{ font-size:16px; margin:0; color:var(--parchment); }
+.admin-link{ color:var(--gold); text-decoration:none; font-size:13px; }
+.admin-link:hover{ text-decoration:underline; }
+
+.admin-main{ max-width:640px; margin:24px auto; padding:0 16px; display:flex; flex-direction:column; gap:16px; }
+.admin-card{
+  background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:18px;
+}
+.admin-card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.admin-card h2{ font-size:14px; margin:0; color:var(--parchment); }
+.admin-blurb{ font-size:12.5px; color:var(--parchment-dim); margin:0 0 12px; }
+
+.admin-form{ display:flex; gap:8px; }
+.admin-form input{
+  flex:1; background:var(--ink-2); border:1px solid var(--line); border-radius:6px;
+  padding:8px 10px; color:var(--parchment); font-size:13px;
+}
+.admin-form button, .admin-card-head button{
+  background:linear-gradient(180deg,#d9b25a,var(--gold)); color:#3a2c0d; border:none;
+  padding:8px 14px; border-radius:6px; font-weight:700; font-size:12.5px; cursor:pointer;
+}
+.admin-form button:hover, .admin-card-head button:hover{ filter:brightness(1.08); }
+
+.admin-error{ color:var(--danger); font-size:12px; min-height:14px; margin:8px 0 0; }
+
+.admin-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+.admin-table th{ text-align:left; color:var(--parchment-dim); font-weight:600; padding:6px 8px; border-bottom:1px solid var(--line); }
+.admin-table td{ padding:8px; border-bottom:1px solid var(--line); color:var(--parchment); vertical-align:middle; }
+.admin-table tr:last-child td{ border-bottom:none; }
+.admin-row-actions{ display:flex; gap:6px; justify-content:flex-end; }
+.admin-row-actions button{
+  background:var(--ink-2); border:1px solid var(--line); color:var(--parchment);
+  padding:5px 10px; border-radius:6px; font-size:11.5px; cursor:pointer;
+}
+.admin-row-actions button:hover{ border-color:var(--gold); color:var(--gold); }
+.admin-row-actions button.danger:hover{ border-color:var(--danger); color:var(--danger); }

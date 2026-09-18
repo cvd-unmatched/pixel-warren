@@ -317,6 +317,65 @@ async function handleLeaderboard(req, res) {
   );
   sendJson(res, 200, { rows });
 }
+
+/* ---------------- Admin: reset a forgotten password, or delete a user ---
+   Gated behind ADMIN_PASSWORD -- unset, and these endpoints (and /admin)
+   404 same as /tool and /monsters do when disabled, so a deployment that
+   never opted in never even reveals they exist. Checked on every request
+   (no separate admin session) via an X-Admin-Password header, compared
+   with a fixed-length digest + timingSafeEqual rather than ===, same
+   reasoning as verifyPassword above -- a naive string compare leaks timing
+   information an attacker can use to guess the password byte by byte. */
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+const ADMIN_ENABLED = !!ADMIN_PASSWORD;
+function verifyAdminPassword(provided) {
+  if (!ADMIN_ENABLED) return false;
+  const a = crypto.createHash('sha256').update(String(provided || '')).digest();
+  const b = crypto.createHash('sha256').update(ADMIN_PASSWORD).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+function requireAdmin(req, res) {
+  if (!ADMIN_ENABLED) { sendJson(res, 404, { ok: false, error: 'not found' }); return false; }
+  if (!verifyAdminPassword(req.headers['x-admin-password'])) {
+    sendJson(res, 401, { ok: false, error: 'invalid admin password' });
+    return false;
+  }
+  if (!dbReady) { sendJson(res, 503, { ok: false, error: 'accounts are not available right now' }); return false; }
+  return true;
+}
+async function handleAdminListUsers(req, res) {
+  if (!requireAdmin(req, res)) return;
+  const rows = await pool.query('SELECT username, created_at FROM users ORDER BY created_at DESC');
+  sendJson(res, 200, { ok: true, users: rows });
+}
+async function handleAdminResetPassword(req, res) {
+  if (!requireAdmin(req, res)) return;
+  let body;
+  try { body = await readJsonBody(req); } catch (e) { return sendJson(res, e.status || 400, { ok: false, error: e.message }); }
+  const username = String(body.username || '').trim();
+  const newPassword = String(body.newPassword || '');
+  if (newPassword.length < 8 || newPassword.length > 200) {
+    return sendJson(res, 400, { ok: false, error: 'password must be at least 8 characters' });
+  }
+  const users = await pool.query('SELECT id FROM users WHERE username = ?', [username]);
+  if (!users[0]) return sendJson(res, 404, { ok: false, error: 'no such user' });
+  await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [hashPassword(newPassword), users[0].id]);
+  // The account holder never chose this password themselves -- any session
+  // logged in under the old one must not keep working.
+  await pool.query('DELETE FROM sessions WHERE user_id = ?', [users[0].id]);
+  sendJson(res, 200, { ok: true });
+}
+async function handleAdminDeleteUser(req, res) {
+  if (!requireAdmin(req, res)) return;
+  let body;
+  try { body = await readJsonBody(req); } catch (e) { return sendJson(res, e.status || 400, { ok: false, error: e.message }); }
+  const username = String(body.username || '').trim();
+  // sessions/saves/leaderboard all FOREIGN KEY ... ON DELETE CASCADE off
+  // users.id (see initDb above), so this one delete cleans up everywhere.
+  const result = await pool.query('DELETE FROM users WHERE username = ?', [username]);
+  if (!result.affectedRows) return sendJson(res, 404, { ok: false, error: 'no such user' });
+  sendJson(res, 200, { ok: true });
+}
 // Server-side feature flags the client can't see on its own (it's a
 // static file with no access to process.env). BESTIARY=show is a design
 // review switch -- reveals every monster's lore/power in the Bestiary
@@ -451,6 +510,14 @@ const server = http.createServer((req, res) => {
   if (url === '/api/me' && req.method === 'GET') return withErrorHandling(handleMe)(req, res);
   if (url === '/api/leaderboard' && req.method === 'GET') return withErrorHandling(handleLeaderboard)(req, res);
   if (url === '/api/config' && req.method === 'GET') return withErrorHandling(handleConfig)(req, res);
+  if (url === '/api/admin/users' && req.method === 'GET') return withErrorHandling(handleAdminListUsers)(req, res);
+  if (url === '/api/admin/reset-password' && req.method === 'POST') return withErrorHandling(handleAdminResetPassword)(req, res);
+  if (url === '/api/admin/delete-user' && req.method === 'POST') return withErrorHandling(handleAdminDeleteUser)(req, res);
+  if (url === '/admin' && req.method === 'GET') {
+    if (!ADMIN_ENABLED) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not found'); return; }
+    req.url = '/admin.html';
+    return serveStatic(req, res);
+  }
   if (url === '/api/tool/save-sprite' && req.method === 'POST') return withErrorHandling(handleToolSaveSprite)(req, res);
   if (url === '/tool' && req.method === 'GET') {
     if (!TOOLS_ENABLED) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not found'); return; }

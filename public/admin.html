@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel Warren: Admin</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <header class="admin-header">
+    <h1>Pixel Warren Admin</h1>
+    <a href="/" class="admin-link">&larr; back to game</a>
+  </header>
+
+  <main class="admin-main">
+    <section class="admin-card" id="unlockCard">
+      <p class="admin-blurb">Enter the admin password (ADMIN_PASSWORD on the server) to manage accounts.</p>
+      <form id="unlockForm" class="admin-form">
+        <input type="password" id="adminPasswordInput" placeholder="Admin password" autocomplete="off" required>
+        <button type="submit">Unlock</button>
+      </form>
+      <p class="admin-error" id="unlockError"></p>
+    </section>
+
+    <section class="admin-card" id="usersCard" hidden>
+      <div class="admin-card-head">
+        <h2>Users</h2>
+        <button type="button" id="refreshBtn">Refresh</button>
+      </div>
+      <p class="admin-error" id="usersError"></p>
+      <table class="admin-table">
+        <thead><tr><th>Username</th><th>Created</th><th></th></tr></thead>
+        <tbody id="usersBody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>

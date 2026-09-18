@@ -39,6 +39,10 @@ from `process.env`, so exporting them directly also works):
 - `MONSTERS=true`: enables the monster simulator at `/monsters` -- pick
   any monster from the full roster and fight it in an isolated test
   arena, independent of realm progress or your save.
+- `ADMIN_PASSWORD`: enables the admin page at `/admin` for deleting a
+  user or resetting a forgotten password (there's no self-service
+  "forgot password" flow). Leave unset to disable entirely, same as
+  `TOOLS`/`MONSTERS` above. Requires MariaDB to be configured too.
 
 ## Docker
 
@@ -80,6 +84,8 @@ container is recreated; that's where the guest-mode `save.json` lives.
   source file on disk. Don't enable this in a real deployment.
 - `GOD=true`: every click is a one-hit kill. Testing only.
 - `MONSTERS=true`: enables the monster simulator at `/monsters`.
+- `ADMIN_PASSWORD`: enables `/admin` for deleting a user or resetting a
+  forgotten password. Requires MariaDB (`DB_HOST` etc.) to be set too.
 
 Example with MariaDB-backed accounts:
 
@@ -120,6 +126,15 @@ Combat itself is still fully client-side, so an account does not yet
 prevent someone from editing their own save client-side before it's
 posted -- that requires moving the tick loop and action validation onto
 the server, planned as a follow-up once accounts are solid.
+
+There's no self-service "forgot password" flow (no email/SMTP setup to
+send a reset link through). Set `ADMIN_PASSWORD` and open `/admin`
+instead: list accounts, reset a forgotten password (this also logs out
+that account's existing sessions), or delete an account outright
+(cascades to their save and leaderboard row). Checked on every request
+against `ADMIN_PASSWORD` via an `X-Admin-Password` header rather than a
+separate login, so keep that value strong and don't expose `/admin` to
+the open internet.
 
 ## Project layout
 
