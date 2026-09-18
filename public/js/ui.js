@@ -152,6 +152,29 @@
     el.cookieBanner.hidden = true;
     try{ localStorage.setItem(COOKIE_NOTICE_KEY, '1'); }catch(e){}
   });
+  // Resets `state` to exactly what `d` represents (a fresh game if `d` is
+  // empty/null) -- used whenever the identity behind the save changes:
+  // logging in, logging out, or switching accounts. Skipping this (as the
+  // login/logout handlers used to) leaves whatever was already in memory
+  // -- guest progress, or a *different* account's data -- sitting there
+  // unchanged, and the very next autosave then writes it back out as if
+  // it belonged to the new identity. Doesn't render or touch boss-ability
+  // timers itself; callers differ on exactly when that should happen
+  // (boot also runs offline-progress catch-up first, for one).
+  function replaceStateWithSave(d){
+    state = freshState();
+    applyLoadedSave(d);
+    if(!state.enemy || state.enemy.hp <= 0) state.enemy = makeEnemyData(currentLevel(), false);
+    if(!state.enemy.isBoss){
+      var freshMaxHp = Math.round(currentLevel().baseHp * villageScale());
+      if(freshMaxHp !== state.enemy.maxHp){
+        state.enemy.maxHp = freshMaxHp;
+        state.enemy.hp = Math.min(state.enemy.hp, freshMaxHp);
+      }
+    }
+    goldDisplayValue = state.gold;
+    lastLevelRendered = -1;
+  }
   el.tabSignIn.addEventListener('click', function(){ setAuthMode('signin'); });
   el.tabSignUp.addEventListener('click', function(){ setAuthMode('signup'); });
   el.authForm.addEventListener('submit', function(ev){
@@ -185,15 +208,19 @@
         } else {
           loadLeaderboard();
           // Existing account: its own save is the source of truth, so pull
-          // it down and replace whatever was showing locally.
-          fetch('api/save').then(function(r){ return r.json(); }).then(function(d){
-            if(d && Object.keys(d).length){
-              applyLoadedSave(d);
-              goldDisplayValue = state.gold;
-              lastLevelRendered = -1;
-              renderAll();
-              toast('Welcome back, '+res.body.username+'!');
-            }
+          // it down and replace whatever was showing locally -- even if
+          // that account has no save yet (a fresh signup elsewhere, or an
+          // empty {} back from the server), which must still reset to a
+          // clean slate rather than silently keeping whatever this device
+          // had shown a moment ago as a guest or a different account.
+          // persistLoad() (not a raw fetch) so USE_SERVER actually flips to
+          // true here too -- it was never previously updated by this path,
+          // so saves kept quietly going to localStorage post-login until
+          // the next full page reload noticed the real session.
+          persistLoad().then(function(d){
+            replaceStateWithSave(d);
+            renderAll();
+            toast('Welcome back, '+res.body.username+'!');
           });
         }
       })
@@ -207,7 +234,17 @@
     fetch('api/logout', { method:'POST' }).then(function(){
       refreshAccountUI(false, null);
       loadLeaderboard();
-      toast('Signed out. Progress now saves to this device only.');
+      // Same reset as signing in: without it, the account's progress just
+      // stayed in memory after logout and got written into this device's
+      // guest save (localStorage) on the very next autosave, clobbering
+      // whatever guest progress was actually there before. persistLoad()
+      // now correctly sees no session and loads this browser's own local
+      // save instead (and flips USE_SERVER to false in the process).
+      return persistLoad().then(function(d){
+        replaceStateWithSave(d);
+        renderAll();
+        toast('Signed out. Progress now saves to this device only.');
+      });
     });
   });
   // First-time visitors (not signed in, and no local guest save yet) get
@@ -310,31 +347,14 @@
   renderAll(); // paint an immediate default frame while the save loads
   persistLoad().then(function(d){
     var isNewGame = !d || typeof d !== 'object' || !Object.keys(d).length;
-    applyLoadedSave(d);
-    // A save can land in the ~0.5s gap between an enemy dying and its
-    // delayed respawn actually firing (tab backgrounded, browser closed
-    // mid-fight) -- loading that half-dead enemy back as-is looks like it
-    // "comes back" at the same low HP, dies again on the next hit, and only
-    // then does a real new monster show up. Catch it here instead.
-    if(!state.enemy || state.enemy.hp <= 0) state.enemy = makeEnemyData(currentLevel(), false);
-    // A realm HP/gold balance change (or a Village-scale change) leaves an
-    // already-spawned, still-alive regular monster showing whatever numbers
-    // were true when it spawned -- nothing else ever re-derives them, so a
-    // save loaded right after a big rebalance could sit on a stale, wildly
-    // wrong HP bar indefinitely, not just until the next kill. Bosses are
-    // left alone (mid-fight ability state like shieldUntil isn't safe to
-    // silently recompute around), but a regular monster has no such state
-    // worth preserving beyond how much of its (now-current) HP is left.
-    if(!state.enemy.isBoss){
-      var freshMaxHp = Math.round(currentLevel().baseHp * villageScale());
-      if(freshMaxHp !== state.enemy.maxHp){
-        state.enemy.maxHp = freshMaxHp;
-        state.enemy.hp = Math.min(state.enemy.hp, freshMaxHp);
-      }
-    }
+    // replaceStateWithSave also covers the half-dead-enemy-on-load and
+    // stale-HP-after-a-balance-change cases (see its own comment) -- boot
+    // just adds offline-progress catch-up and the first-run story toast on
+    // top, which only make sense for an actual page load, not a live
+    // identity switch mid-session.
+    replaceStateWithSave(d);
     var offline = runOfflineProgress();
     if(state.enemy.isBoss) startBossAbilities(state.enemy.bossAbilities, bossFightToken);
-    goldDisplayValue = state.gold;
     renderAll();
     if(isNewGame){
       toast(STORY_INTRO, 5500);
