@@ -29,13 +29,21 @@
   // realm-to-realm HP curve that a five-minutes-a-day player reached
   // Dragon's Peak in under a day, and a dedicated one in under an hour --
   // nowhere near long enough for beating the dragon to actually feel like a
-  // milestone. Modeled against the real upgrade costs/effects at a few
-  // play-intensity levels (a few minutes a day up through several hours a
-  // day, every day), this keeps even the most dedicated modeled player past
-  // a week, with more typical playtime taking two to several weeks. Kept as
-  // one multiplier here rather than baked into every LEVELS_RAW baseHp, so
-  // the authored per-realm curve stays readable.
-  var REALM_HP_SCALE = 350;
+  // milestone. A flat multiplier on every realm's baseHp fixed the total
+  // time, but it also made the very first monster -- zero upgrades, click
+  // damage of 1 -- a multi-thousand-click wall, which is exactly backwards:
+  // the opening kills are supposed to be the fast, easy hook. This ramps in
+  // per realm instead of scaling everything uniformly: the first
+  // REALM_HP_RAMP_DELAY realms are left completely untouched (realm 1 *and*
+  // realm 2 keep their original, familiar baseHp -- no exaggerated jump
+  // right out of the gate either), then REALM_HP_RAMP_GROWTH compounds from
+  // there. Re-modeled the same way (real upgrade costs/effects against a
+  // few play-intensity levels) with this curve: still keeps the most
+  // dedicated modeled player past a week to the dragon, typical playtime
+  // one to two weeks, and the first two realms read exactly as they always
+  // did.
+  var REALM_HP_RAMP_GROWTH = 2.4;
+  var REALM_HP_RAMP_DELAY = 1;
   var LEVELS_RAW = [
 { key:'forest', name:"Whispering Forest", enemies:['slime','goblin','sprig','mudpup','thornling','mosshopper','bramblewolf','gladefly'], boss:'ent', bossName:"Elder Ent",
       baseHp:12, baseGold:4, accent:'#9be27a',
@@ -139,11 +147,11 @@
           bossAbilities:[ {type:'summon', every:11000, addKey:'wyvern', addHpFrac:0.28}, {type:'regen', every:10000, fraction:0.1, maxTicks:4, lowHpThreshold:0.25} ] }
       ] }
   ];
-  function normalizeLevel(lvl){
+  function normalizeLevel(lvl, index){
     return {
       key: lvl.key, name: lvl.name,
       enemies: lvl.enemies, boss: lvl.boss, bossName: lvl.bossName,
-      baseHp: lvl.baseHp * REALM_HP_SCALE, baseGold: lvl.baseGold,
+      baseHp: Math.round(lvl.baseHp * Math.pow(REALM_HP_RAMP_GROWTH, Math.max(0, index - REALM_HP_RAMP_DELAY))), baseGold: lvl.baseGold,
       accent: lvl.accent || '#e8c468',
       sky: lvl.sky || 'linear-gradient(180deg,#3a3a3a 0%, #202020 60%, #101010 100%)',
       lore: lvl.lore || '',
