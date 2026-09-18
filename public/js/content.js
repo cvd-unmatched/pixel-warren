@@ -453,6 +453,11 @@ sprig: { lore:"A wandering offshoot of something larger, still learning to walk.
   function totalVillageLevels(){
     return VILLAGE.reduce(function(sum,b){ return sum+(state.villageLevels[b.id]||0); }, 0);
   }
+  // The one post-Ascend difficulty knob (see makeEnemyData in state.js) --
+  // pulled out here, not just inlined there, so a save-load refresh of an
+  // already-spawned regular monster's stats (see ui.js boot) can use the
+  // exact same formula instead of a second copy of this coefficient.
+  function villageScale(){ return 1 + totalVillageLevels()*0.7; }
 
   // Camp Shop upgrades and Village buildings feed the same stat roles, so
   // one pass over both sources aggregates everything that shares a role.

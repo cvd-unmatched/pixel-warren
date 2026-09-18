@@ -257,7 +257,7 @@
     // Village build was still outpacing it by a wide margin ("a couple of
     // upgrades and you 1-shot everything"). Raised to 0.7 -- still just
     // this one lever, tuned harder rather than adding a second one.
-    var scale = 1 + totalVillageLevels()*0.7;
+    var scale = villageScale();
     var hp = Math.round(level.baseHp * scale * (isBoss?level.hpBossMult:1));
     var goldReward = Math.round(level.baseGold * scale * (isBoss?level.goldBossMult:1) * (0.85+Math.random()*0.3));
     return { key:key, name:name, isBoss:isBoss, maxHp:hp, hp:hp, goldReward:goldReward, regenTicksUsed:0,

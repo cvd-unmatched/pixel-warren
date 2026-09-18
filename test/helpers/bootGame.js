@@ -23,7 +23,16 @@ function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
 // file's worth of boots, the leftover jsdom documents and live timers pile
 // up fast enough to OOM the process. Every caller MUST tear its dom down,
 // e.g. `t.after(() => dom.window.close())` inside a node:test test(fn).
-async function bootGame(){
+// Must match SAVE_KEY in public/js/state.js -- jsdom's localStorage is
+// per-window-instance, not shared across separate `new JSDOM()` calls the
+// way a real browser's is across tabs on the same origin, so there is no
+// way to seed it from an *already-booted* game and have a later bootGame()
+// see it. Seeding it here, before the eval that runs the boot code, is the
+// only way to test "boots with a specific save already present".
+const SAVE_KEY = 'pixelWarrenSave_v2';
+
+async function bootGame(options){
+  options = options || {};
   const html = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
   const dom = new JSDOM(html, {
     url: 'http://localhost/',
@@ -42,6 +51,9 @@ async function bootGame(){
   if(!window.requestAnimationFrame){
     window.requestAnimationFrame = function(cb){ return setTimeout(function(){ cb(Date.now()); }, 16); };
     window.cancelAnimationFrame = function(id){ clearTimeout(id); };
+  }
+  if(options.presetSave){
+    window.localStorage.setItem(SAVE_KEY, JSON.stringify(options.presetSave));
   }
 
   // One eval call, not one per file -- jsdom's window.eval doesn't reliably

@@ -285,6 +285,21 @@
     // "comes back" at the same low HP, dies again on the next hit, and only
     // then does a real new monster show up. Catch it here instead.
     if(!state.enemy || state.enemy.hp <= 0) state.enemy = makeEnemyData(currentLevel(), false);
+    // A realm HP/gold balance change (or a Village-scale change) leaves an
+    // already-spawned, still-alive regular monster showing whatever numbers
+    // were true when it spawned -- nothing else ever re-derives them, so a
+    // save loaded right after a big rebalance could sit on a stale, wildly
+    // wrong HP bar indefinitely, not just until the next kill. Bosses are
+    // left alone (mid-fight ability state like shieldUntil isn't safe to
+    // silently recompute around), but a regular monster has no such state
+    // worth preserving beyond how much of its (now-current) HP is left.
+    if(!state.enemy.isBoss){
+      var freshMaxHp = Math.round(currentLevel().baseHp * villageScale());
+      if(freshMaxHp !== state.enemy.maxHp){
+        state.enemy.maxHp = freshMaxHp;
+        state.enemy.hp = Math.min(state.enemy.hp, freshMaxHp);
+      }
+    }
     var offline = runOfflineProgress();
     if(state.enemy.isBoss) startBossAbilities(state.enemy.bossAbilities, bossFightToken);
     goldDisplayValue = state.gold;

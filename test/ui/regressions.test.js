@@ -29,12 +29,56 @@ describe('death/respawn/save regressions', () => {
     // closed in the ~0.5s between a kill and its delayed respawn.
     const payload = g.buildSavePayload();
     payload.enemy = { key: 'slime', name: 'Slime', hp: -40, maxHp: 100, goldReward: 5 };
-    dom.window.localStorage.setItem('pixelWarrenSave', JSON.stringify(payload));
 
-    const dom2 = await bootGame();
+    const dom2 = await bootGame({ presetSave: payload });
     try {
       const g2 = dom2.window.__game;
       assert.ok(g2.state.enemy.hp > 0, 'a half-dead loaded enemy must be replaced with a fresh, living one');
+    } finally {
+      dom2.window.close();
+    }
+  });
+
+  test('a still-alive enemy loaded from a save gets its HP refreshed to the current balance, not left stale', async () => {
+    // Unlike the dead-enemy case above, nothing else ever re-derives a
+    // *live* enemy's stats -- so a realm HP/gold rebalance (or a Village-
+    // scale coefficient change) left an already-spawned regular monster
+    // showing whatever numbers were true when it spawned, indefinitely,
+    // not just until its next kill. Reported live: a fresh realm-1 monster
+    // still showing 4200 HP (the pre-rebalance flat-350x value) well after
+    // the fix shipped, because the enemy already on screen predated it.
+    const payload = g.buildSavePayload();
+    payload.levelIndex = 0;
+    payload.villageLevels = {};
+    payload.enemy = { key: 'slime', name: 'Slime', isBoss: false, hp: 4200, maxHp: 4200, goldReward: 500 };
+
+    const dom2 = await bootGame({ presetSave: payload });
+    try {
+      const g2 = dom2.window.__game;
+      assert.equal(g2.state.enemy.key, 'slime', "the monster's identity must be preserved, only its numbers refreshed");
+      assert.equal(g2.state.enemy.maxHp, g2.LEVELS[0].baseHp, "a stale live enemy's maxHp must be refreshed to the current realm baseHp");
+      assert.ok(g2.state.enemy.hp <= g2.state.enemy.maxHp, 'hp must never be left exceeding the refreshed maxHp');
+    } finally {
+      dom2.window.close();
+    }
+  });
+
+  test('a boss fight loaded from a save keeps its own HP untouched', async () => {
+    // Bosses are deliberately left out of the refresh above -- mid-fight
+    // ability state (shieldUntil, curseActive, hydra wave progress, ...)
+    // isn't safe to silently recompute around, and a boss fight in
+    // progress is a much shorter-lived scenario than a regular monster
+    // just sitting on screen across a content update.
+    const payload = g.buildSavePayload();
+    payload.levelIndex = 0;
+    payload.villageLevels = {};
+    payload.enemy = { key: 'ent', name: 'Elder Ent', isBoss: true, hp: 4200, maxHp: 4200, goldReward: 500 };
+
+    const dom2 = await bootGame({ presetSave: payload });
+    try {
+      const g2 = dom2.window.__game;
+      assert.equal(g2.state.enemy.key, 'ent', 'a boss fight in progress must not be swapped out for a different enemy');
+      assert.equal(g2.state.enemy.maxHp, 4200, 'a boss fight in progress must not have its HP silently rewritten');
     } finally {
       dom2.window.close();
     }
