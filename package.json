@@ -1,6 +1,6 @@
 {
   "name": "pixel-warren",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "description": "A pixel-art monster-hunting idle game with file-backed save progress.",
   "private": true,
   "main": "server.js",
