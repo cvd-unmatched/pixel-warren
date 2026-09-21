@@ -104,6 +104,7 @@ async function bootGame(options){
     '  get whackState(){ return whackState; },',
     '  WHACK_HOLES: WHACK_HOLES, WHACK_ROUND_TICKS: WHACK_ROUND_TICKS, WHACK_UP_TICKS: WHACK_UP_TICKS,',
     '  PERKS: PERKS, buyPerk: buyPerk, hasPerk: hasPerk, momentumMult: momentumMult,',
+    '  DEBUFF_SHATTER_CLICKS: DEBUFF_SHATTER_CLICKS,',
     '  clickDamage: clickDamage, goldMultVal: goldMultVal, villageCost: villageCost,',
     '  get hadLocalSaveBeforeBoot(){ return hadLocalSaveBeforeBoot; },',
     '  checkAuthStatus: checkAuthStatus, openAccount: openAccount, closeAccount: closeAccount',

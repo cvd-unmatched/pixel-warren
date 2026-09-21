@@ -363,7 +363,7 @@
       if(!state.enemy || state.enemy.hp<=0) return;
       if(ability.type === 'shield') triggerShield(ability);
       else if(ability.type === 'summon') triggerSummon(ability);
-      else if(ability.type === 'regen') triggerRegen(ability);
+      else if(ability.type === 'regen') triggerRegen(ability, token);
       else if(ability.type === 'mathGate') triggerMathGate(ability);
       else if(ability.type === 'webPull') triggerWebPull(ability);
       else if(ability.type === 'enrage') triggerEnrage(ability);
@@ -379,10 +379,31 @@
     }, ability.every);
   }
   function isShielded(e){ return !!(e && e.shieldUntil && Date.now() < e.shieldUntil); }
+  // Shared "click through it" pattern for the passive damage-modifier
+  // debuffs below (shield, frostbite, drain, enrage, camouflage, taunt): a
+  // real click (never an auto-DPS tick) chips at a shatter counter, and
+  // enough of them ends the effect immediately instead of it only ever
+  // running out the clock. Auto-only play never shatters anything, so it
+  // plays out exactly as before -- this only ever gives active clicking a
+  // way to cut a debuff short, never makes ignoring one worse.
+  var DEBUFF_SHATTER_CLICKS = 6;
+  function progressShatter(target, key){
+    var progressKey = key+'ShatterProgress';
+    target[progressKey] = (target[progressKey]||0) + 1;
+    if(target[progressKey] >= DEBUFF_SHATTER_CLICKS){
+      target[key+'Until'] = 0;
+      target[progressKey] = 0;
+      screenShake('boss-shake');
+      burstParticles('impact', 10);
+      return true;
+    }
+    return false;
+  }
   function triggerShield(ability){
     if(state.addEnemy) return;
     state.enemy.shieldReduction = ability.reduction;
     state.enemy.shieldUntil = Date.now() + ability.duration;
+    state.enemy.shieldShatterProgress = 0;
     toast(state.enemy.name+' raises a shield!');
     screenShake('boss-shake');
     burstParticles('impact', 14);
@@ -417,6 +438,7 @@
     var e = state.enemy;
     if(!e || e.hp<=0) return;
     e.enrageUntil = Date.now() + ability.duration;
+    e.enrageShatterProgress = 0;
     toast(e.name+' enters a rage, no clean hits will land!');
     screenShake('boss-shake');
     renderEnemy(false);
@@ -426,6 +448,7 @@
     if(!e || e.hp<=0) return;
     e.drainUntil = Date.now() + ability.duration;
     e.drainFrac = ability.drainFrac != null ? ability.drainFrac : 0.4;
+    e.drainShatterProgress = 0;
     toast(e.name+' drains at your strikes!');
     renderEnemy(false);
   }
@@ -433,6 +456,7 @@
     var e = state.enemy;
     if(!e || e.hp<=0 || state.addEnemy) return;
     e.camoUntil = Date.now() + ability.duration;
+    e.camoShatterProgress = 0;
     toast(e.name+' fades from sight!');
     renderEnemy(false);
   }
@@ -465,6 +489,7 @@
     if(!e || e.hp<=0) return;
     e.frostUntil = Date.now() + ability.duration;
     e.frostReduction = ability.flatReduction || Math.max(1, Math.round(e.maxHp*0.01));
+    e.frostShatterProgress = 0;
     toast(e.name+' chills the air, your strikes weaken!');
     renderEnemy(false);
   }
@@ -473,6 +498,7 @@
     if(!e || e.hp<=0) return;
     e.tauntUntil = Date.now() + ability.duration;
     e.tauntChance = ability.missChance != null ? ability.missChance : 0.4;
+    e.tauntShatterProgress = 0;
     toast(e.name+' taunts you, strikes may miss!');
     renderEnemy(false);
   }
@@ -518,25 +544,38 @@
   // that the boss is permanently "exhausted" for the rest of this
   // encounter, so no matter how weak your damage is, the fight is always
   // finite and winnable once the exhaustion window passes.
-  function triggerRegen(ability){
+  // A desperate last stand, not a constant nuisance: it only kicks in once
+  // the boss is nearly dead, so you can freely chip away early and only
+  // need to worry about finishing the job decisively. Used to heal the
+  // instant the periodic check found it below threshold, no matter what
+  // you were doing -- now it staggers and warns first (same "act now or it
+  // plays out as before" shape as triggerOvercharge), so there's always a
+  // window to either finish it off or burst it back above threshold before
+  // the heal actually lands, instead of a heal that just happens regardless.
+  function triggerRegen(ability, token){
     var e = state.enemy;
-    if(!e || e.hp<=0) return;
-    // A desperate last stand, not a constant nuisance: it only kicks in
-    // once the boss is nearly dead, so you can freely chip away early
-    // and only need to worry about finishing the job decisively.
+    if(!e || e.hp<=0 || e.regenWarning) return;
     var threshold = ability.lowHpThreshold != null ? ability.lowHpThreshold : 0.25;
     if(e.hp / e.maxHp > threshold) return;
-    var used = e.regenTicksUsed||0;
-    if(used >= ability.maxTicks) return;
-    var missing = e.maxHp - e.hp;
-    if(missing <= 0) return;
-    var healAmount = Math.max(1, Math.round(missing * ability.fraction));
-    e.hp = Math.min(e.maxHp, e.hp + healAmount);
-    e.regenTicksUsed = used+1;
-    var left = ability.maxTicks - e.regenTicksUsed;
-    toast(e.name+' regenerates '+fmt(healAmount)+' HP!' + (left<=0 ? ' It looks exhausted.' : ''));
+    if((e.regenTicksUsed||0) >= ability.maxTicks) return;
+    e.regenWarning = true;
+    toast(e.name+' staggers -- finish it now or it recovers!');
     renderEnemy(false);
-    el.hpFill.classList.remove('regen-flash'); void el.hpFill.offsetWidth; el.hpFill.classList.add('regen-flash');
+    setTimeout(function(){
+      if(token !== bossFightToken || state.enemy !== e || e.hp<=0) return;
+      e.regenWarning = false;
+      if(e.hp / e.maxHp > threshold) return; // burst it back above threshold in time -- no heal
+      var used = e.regenTicksUsed||0;
+      var missing = e.maxHp - e.hp;
+      if(missing <= 0) return;
+      var healAmount = Math.max(1, Math.round(missing * ability.fraction));
+      e.hp = Math.min(e.maxHp, e.hp + healAmount);
+      e.regenTicksUsed = used+1;
+      var left = ability.maxTicks - e.regenTicksUsed;
+      toast(e.name+' regenerates '+fmt(healAmount)+' HP!' + (left<=0 ? ' It looks exhausted.' : ''));
+      renderEnemy(false);
+      el.hpFill.classList.remove('regen-flash'); void el.hpFill.offsetWidth; el.hpFill.classList.add('regen-flash');
+    }, ability.warnDuration || 1500);
   }
   // Matti's stalling tactic: freezes all damage (click and auto alike)
   // until the player answers an easy arithmetic question, so even a fully

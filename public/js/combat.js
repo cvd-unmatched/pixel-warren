@@ -39,21 +39,37 @@
     // "keep attacking" and the punish-for-neglect heal can never fire.
     if(!isAdd && !isAuto) target.overchargeClicked = true;
     if(!isAdd && target.camoUntil && Date.now() < target.camoUntil){
-      spawnFloater('miss', 'blocked');
-      return;
+      if(!isAuto && progressShatter(target, 'camo')){
+        toast(target.name+' is spotted!');
+      } else {
+        spawnFloater('miss', 'blocked');
+        return;
+      }
     }
-    if(!isAdd && target.tauntUntil && Date.now() < target.tauntUntil && Math.random() < target.tauntChance){
-      spawnFloater('miss', 'blocked');
-      return;
+    if(!isAdd && target.tauntUntil && Date.now() < target.tauntUntil){
+      if(!isAuto && progressShatter(target, 'taunt')){
+        toast(target.name+' stops taunting!');
+      } else if(Math.random() < target.tauntChance){
+        spawnFloater('miss', 'blocked');
+        return;
+      }
     }
     var blocked = false;
     if(!isAdd && isShielded(target)){
-      amount = amount*(1-target.shieldReduction);
-      blocked = true;
+      if(!isAuto && progressShatter(target, 'shield')){
+        toast(target.name+"'s shield shatters!");
+      } else {
+        amount = amount*(1-target.shieldReduction);
+        blocked = true;
+      }
     }
     if(!isAdd && target.frostUntil && Date.now() < target.frostUntil){
-      amount = Math.max(0, amount - target.frostReduction);
-      blocked = true;
+      if(!isAuto && progressShatter(target, 'frost')){
+        toast(target.name+"'s chill breaks!");
+      } else {
+        amount = Math.max(0, amount - target.frostReduction);
+        blocked = true;
+      }
     }
     if(!isAdd && target.weakpointUntil && Date.now() < target.weakpointUntil){
       amount = amount * target.weakpointMult;
@@ -71,9 +87,13 @@
     // the auto-DPS tick) before dealDamage ever saw it, so flipping it here
     // alone never actually reduced damage -- only relabeled the floater.
     // Enrage has to strip the crit multiplier back out to mean anything.
-    if(!isAdd && isCrit && target.enrageUntil && Date.now() < target.enrageUntil){
-      amount = amount / critMultVal();
-      isCrit = false;
+    if(!isAdd && target.enrageUntil && Date.now() < target.enrageUntil){
+      if(!isAuto && progressShatter(target, 'enrage')){
+        toast(target.name+"'s rage breaks, crits are back!");
+      } else if(isCrit){
+        amount = amount / critMultVal();
+        isCrit = false;
+      }
     }
     amount = Math.round(amount*10)/10;
     var floaterCls = blocked ? 'blocked' : (isCrit?'crit':'');
@@ -87,7 +107,11 @@
     }
     target.hp -= amount;
     if(!isAdd && target.drainUntil && Date.now() < target.drainUntil){
-      target.hp = Math.min(target.maxHp, target.hp + amount*target.drainFrac);
+      if(!isAuto && progressShatter(target, 'drain')){
+        toast(target.name+' stops draining your hits!');
+      } else {
+        target.hp = Math.min(target.maxHp, target.hp + amount*target.drainFrac);
+      }
     }
     if(!isAdd && target.secondWindAbility && !target.secondWindUsed){
       var threshold = target.secondWindAbility.threshold != null ? target.secondWindAbility.threshold : 0.2;

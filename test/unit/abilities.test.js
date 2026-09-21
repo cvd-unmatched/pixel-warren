@@ -34,6 +34,26 @@ describe('boss/monster powers', () => {
     assert.equal(e.shieldUntil, 0, 'shield must not apply while a guardian add is up');
   });
 
+  // Shield stands in for the whole shared "click through it" pattern
+  // (shield/frostbite/drain/enrage/camouflage/taunt all use the exact same
+  // progressShatter helper), so one thorough test here covers the mechanic
+  // itself; the other abilities below only need a quick check that they're
+  // actually wired to it.
+  test('a real click chips at a shatter counter and ends the debuff early; auto-DPS never counts', () => {
+    var e = g.state.enemy;
+    e.maxHp = 10000; e.hp = 10000;
+    g.triggerShield({ reduction: 0.9, duration: 60000 });
+
+    for(var i=0;i<50;i++) g.dealDamage(10, false, true); // auto-DPS ticks
+    assert.ok(g.isShielded(e), 'auto-DPS ticks must never progress the shatter counter');
+
+    for(var j=0;j<g.DEBUFF_SHATTER_CLICKS-1;j++) g.dealDamage(10, false);
+    assert.ok(g.isShielded(e), 'the shield must survive one click short of the threshold');
+
+    g.dealDamage(10, false); // the Nth real click
+    assert.ok(!g.isShielded(e), 'the shield should shatter exactly on the Nth real click');
+  });
+
   test('summon sizes the guardian off the boss\'s own max HP, and never stacks a second one', () => {
     var e = g.state.enemy;
     e.maxHp = 1000;
@@ -47,24 +67,41 @@ describe('boss/monster powers', () => {
     assert.equal(g.state.addEnemy.key, 'goblin', 'an existing add must not be replaced by a new summon');
   });
 
-  test('regen only heals below its threshold, by a fraction of the missing HP, capped at maxTicks', () => {
+  test('regen only heals below its threshold, by a fraction of the missing HP, capped at maxTicks', async () => {
     var e = g.state.enemy;
+    var ability = { fraction: 0.5, maxTicks: 2, lowHpThreshold: 0.3, warnDuration: 20 };
     e.maxHp = 1000; e.hp = 500;
-    g.triggerRegen({ fraction: 0.5, maxTicks: 2, lowHpThreshold: 0.3 });
+    g.triggerRegen(ability, g.bossFightToken);
+    assert.equal(e.regenWarning, undefined, 'regen must not even stagger above its HP threshold');
+    await sleep(60);
     assert.equal(e.hp, 500, 'regen must not fire above its HP threshold');
 
     e.hp = 200; // 20%, below the 30% threshold
-    g.triggerRegen({ fraction: 0.5, maxTicks: 2, lowHpThreshold: 0.3 });
+    g.triggerRegen(ability, g.bossFightToken);
+    assert.ok(e.regenWarning, 'a stagger warning should be recorded for the UI to show');
+    await sleep(60);
     assert.equal(e.hp, 600, '50% of the 800 missing HP should heal 400');
     assert.equal(e.regenTicksUsed, 1);
 
     e.hp = 200;
-    g.triggerRegen({ fraction: 0.5, maxTicks: 2, lowHpThreshold: 0.3 });
+    g.triggerRegen(ability, g.bossFightToken);
+    await sleep(60);
     assert.equal(e.regenTicksUsed, 2);
 
     e.hp = 200;
-    g.triggerRegen({ fraction: 0.5, maxTicks: 2, lowHpThreshold: 0.3 });
+    g.triggerRegen(ability, g.bossFightToken);
+    await sleep(60);
     assert.equal(e.hp, 200, 'regen must stop firing once maxTicks is used up');
+  });
+
+  test('regen does not heal if the boss is burst back above threshold before the warning window closes', async () => {
+    var e = g.state.enemy;
+    e.maxHp = 1000; e.hp = 200; // 20%, below the 30% threshold
+    g.triggerRegen({ fraction: 0.5, maxTicks: 2, lowHpThreshold: 0.3, warnDuration: 50 }, g.bossFightToken);
+    e.hp = 800; // player bursts it back above threshold during the window
+    await sleep(90);
+    assert.equal(e.hp, 800, 'no heal should apply once HP is back above threshold');
+    assert.equal(e.regenTicksUsed||0, 0, 'a prevented heal must not consume a tick');
   });
 
   test('drain heals the attacker back a fraction of the damage it deals', () => {
@@ -73,6 +110,18 @@ describe('boss/monster powers', () => {
     g.triggerDrain({ duration: 5000, drainFrac: 0.4 });
     g.dealDamage(100, false);
     assert.equal(e.hp, 940, 'net HP should drop by damage dealt minus 40% drained back');
+  });
+
+  test('drain stops healing back once it shatters from enough real clicks', () => {
+    var e = g.state.enemy;
+    e.maxHp = 100000; e.hp = 100000;
+    g.triggerDrain({ duration: 60000, drainFrac: 0.4 });
+    for(var i=0;i<g.DEBUFF_SHATTER_CLICKS-1;i++) g.dealDamage(100, false);
+    e.hp = 100000; // reset so the drained-vs-not comparison below is clean
+    g.dealDamage(100, false); // the Nth real click shatters it
+    assert.equal(e.hp, 99900, 'the shattering hit itself should deal its full, undrained damage');
+    g.dealDamage(100, false);
+    assert.equal(e.hp, 99800, 'once shattered, later hits must not drain back either');
   });
 
   test('camouflage makes clicks miss entirely until it expires', () => {
@@ -133,6 +182,21 @@ describe('boss/monster powers', () => {
     assert.equal(e.frostReduction, 10);
   });
 
+  test('enrage\'s shatter counter advances on every real click, not just crits', () => {
+    // Stripping the crit multiplier only ever matters on a crit, but the
+    // shatter counter has to move on plain clicks too, or a low crit-chance
+    // build could never click enrage off within its duration.
+    var e = g.state.enemy;
+    e.maxHp = 10000; e.hp = 10000;
+    g.triggerEnrage({ duration: 60000 });
+
+    for(var i=0;i<g.DEBUFF_SHATTER_CLICKS-1;i++) g.dealDamage(10, false); // plain, non-crit clicks
+    assert.ok(e.enrageUntil > Date.now(), 'enrage should survive one non-crit click short of the threshold');
+
+    g.dealDamage(10, false);
+    assert.ok(!(e.enrageUntil > Date.now()), 'enrage should break from plain clicks alone');
+  });
+
   test('taunt makes hits miss exactly at its configured chance', () => {
     var e = g.state.enemy;
     e.maxHp = 1000; e.hp = 1000;
@@ -143,6 +207,18 @@ describe('boss/monster powers', () => {
     g.triggerTaunt({ duration: 5000, missChance: 0 });
     g.dealDamage(50, false);
     assert.equal(e.hp, 950, 'a 0% miss chance must never miss');
+  });
+
+  test('taunt\'s shattering click always lands, bypassing the miss roll', () => {
+    var e = g.state.enemy;
+    e.maxHp = 10000; e.hp = 10000;
+    g.triggerTaunt({ duration: 60000, missChance: 1 }); // always-miss, so any landed hit proves the shatter fired
+    for(var i=0;i<g.DEBUFF_SHATTER_CLICKS-1;i++) g.dealDamage(10, false);
+    assert.equal(e.hp, 10000, 'taunt should still be blocking every hit short of the threshold');
+
+    g.dealDamage(10, false); // the Nth real click
+    assert.equal(e.hp, 9990, 'the shattering click must land even against a 100% miss chance');
+    assert.ok(!(e.tauntUntil > Date.now()), 'taunt should end the moment it shatters');
   });
 
   test('overcharge heals only if the channel window closes with no click landed', async () => {

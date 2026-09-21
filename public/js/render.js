@@ -214,15 +214,17 @@
     else if(e.hydraActive){ el.enemySub.textContent = 'body is safe until the heads fall'; }
     else if(e.mathGateActive){ el.enemySub.textContent = 'answer the question to keep attacking'; }
     else if(cursed){ el.enemySub.textContent = 'Cursed! '+(e.curseProgress||0)+'/'+e.curseNeeded+' clicks to break free'; }
-    else if(e.camoUntil && now < e.camoUntil){ el.enemySub.textContent = 'faded from sight, hits are missing'; }
-    else if(e.tauntUntil && now < e.tauntUntil){ el.enemySub.textContent = 'taunting you, hits may miss'; }
+    else if(e.camoUntil && now < e.camoUntil){ el.enemySub.textContent = 'faded from sight, hits are missing (keep swinging to find it)'; }
+    else if(e.tauntUntil && now < e.tauntUntil){ el.enemySub.textContent = 'taunting you, hits may miss (keep swinging to shut it up)'; }
     else if(e.weakpointUntil && now < e.weakpointUntil){ el.enemySub.textContent = 'weak point exposed, hit hard now!'; }
     else if(e.gambleUntil && now < e.gambleUntil){ el.enemySub.textContent = 'inviting a gamble, damage is a coin flip'; }
     else if(e.overchargeUntil && now < e.overchargeUntil){ el.enemySub.textContent = 'channeling a ritual, attack to interrupt it!'; }
-    else if(e.frostUntil && now < e.frostUntil){ el.enemySub.textContent = 'chilling the air, hits are weakened'; }
-    else if(e.enrageUntil && now < e.enrageUntil){ el.enemySub.textContent = 'enraged, no crits will land'; }
-    else if(e.drainUntil && now < e.drainUntil){ el.enemySub.textContent = 'draining your hits to heal'; }
+    else if(shielded){ el.enemySub.textContent = 'shielded, hits are weakened (keep hitting to break it)'; }
+    else if(e.frostUntil && now < e.frostUntil){ el.enemySub.textContent = 'chilling the air, hits are weakened (keep hitting to break it)'; }
+    else if(e.enrageUntil && now < e.enrageUntil){ el.enemySub.textContent = 'enraged, no crits will land (keep hitting to break it)'; }
+    else if(e.drainUntil && now < e.drainUntil){ el.enemySub.textContent = 'draining your hits to heal (keep hitting to break it)'; }
     else if(regenAbility && regenLeft<=0){ el.enemySub.textContent = 'exhausted, no more regeneration'; }
+    else if(e.regenWarning){ el.enemySub.textContent = 'staggered! finish it now or it heals!'; }
     else if(regenArmed){ el.enemySub.textContent = 'critically wounded, regenerating ('+regenLeft+' left)'; }
     else if(bossPower){ el.enemySub.textContent = 'Power: '+bossPower; }
     else { el.enemySub.textContent = ''; }
