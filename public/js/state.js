@@ -34,7 +34,13 @@
       try{ localStorage.setItem(SAVE_KEY, json); }catch(e){}
       return;
     }
-    fetch('api/save', { method:'POST', headers:{'Content-Type':'application/json'}, body: json })
+    // keepalive: the save on `beforeunload` (see combat.js) is a plain
+    // fetch fired as the page is closing/reloading -- without this flag the
+    // browser aborts it right along with the navigation instead of letting
+    // it finish, which is what silently dropped the last few seconds of a
+    // signed-in account's progress on reload (guests are unaffected, since
+    // their save is a synchronous localStorage write, not a fetch).
+    fetch('api/save', { method:'POST', headers:{'Content-Type':'application/json'}, body: json, keepalive: true })
       .then(function(r){ if(!r.ok) throw new Error('save failed'); return r.json(); })
       .then(function(d){
         if(d && d.guestMode){
@@ -181,6 +187,22 @@
   function critMultVal(){ return 1.5 + sumEffect('critMultAdd'); }
   function goldMultVal(){ return multEffect('goldMult') * momentumMult(); }
   function goldFlatBonus(){ return sumEffect('goldFlat'); }
+  // Regular-kill gold on the current realm decays the longer you keep
+  // farming past the point its boss became available -- the killsPerBoss
+  // kills it actually takes to get there always pay full rate (that's the
+  // intended pace, not farming), but every kill beyond that pays less, down
+  // to a floor. Without this, an easy early realm was strictly more
+  // profitable per click than moving on ever was, so bosses (the only way
+  // to advance -- see makeEnemyData) went unfought and their abilities
+  // never got a chance to matter. Resets to full rate the moment the boss
+  // is actually beaten, since killsInLevel resets there too.
+  var FARM_DECAY_RATE = 0.93;
+  var FARM_DECAY_FLOOR = 0.2;
+  function farmDecayMult(){
+    var excess = state.killsInLevel - currentLevel().killsPerBoss;
+    if(excess <= 0) return 1;
+    return Math.max(FARM_DECAY_FLOOR, Math.pow(FARM_DECAY_RATE, excess));
+  }
   // Luck: a regular (non-boss) kill has this chance to also drop a bonus
   // Gambling Token, on top of the guaranteed one from realm bosses --
   // capped so the minigame stays a nice extra, not the main gold engine.

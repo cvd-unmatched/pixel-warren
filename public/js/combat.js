@@ -128,7 +128,7 @@
     var level = currentLevel();
     var bonusGold = 0;
     for(var i=0;i<bonusKills;i++){
-      var reward = Math.round(e.goldReward * goldMultVal()) + goldFlatBonus();
+      var reward = Math.round(e.goldReward * goldMultVal() * farmDecayMult()) + goldFlatBonus();
       bonusGold += reward;
       state.gold += reward;
       state.totalGoldRun += reward;
@@ -147,7 +147,7 @@
     state.defeated[e.key] = true;
     unlockAchievement('firstBlood');
     checkCollectorAchievement();
-    var reward = Math.round(e.goldReward * goldMultVal()) + goldFlatBonus();
+    var reward = Math.round(e.goldReward * goldMultVal() * (e.isBoss ? 1 : farmDecayMult())) + goldFlatBonus();
     state.gold += reward;
     state.totalGoldRun += reward;
     state.totalKills++;
@@ -223,6 +223,11 @@
     } else {
       state.killsInLevel++;
       if(state.killsInLevel % level.killsPerBoss === 0) state.bossReady = true;
+      // One-time heads-up right as farmDecayMult starts biting, not after --
+      // a shrinking gold number with no explanation just reads as a bug.
+      if(state.killsInLevel === level.killsPerBoss + 1){
+        toast("Lingering here pays less each kill now -- the "+level.bossName+" won't get any easier by waiting.", 4500);
+      }
       // Luck gives regular kills their own (smaller, capped) shot at a
       // Gambling Token, instead of tokens only ever coming from bosses.
       if(Math.random() < tokenLuckChance()){
@@ -632,7 +637,7 @@
       var timeToKill = e.hp / dps;
       if(timeToKill <= remaining){
         remaining -= timeToKill;
-        var reward = Math.round(e.goldReward * goldMultVal()) + flatBonus;
+        var reward = Math.round(e.goldReward * goldMultVal() * farmDecayMult()) + flatBonus;
         goldGained += reward; kills++;
         state.totalGoldRun += reward; state.totalKills++;
         var level = currentLevel();
